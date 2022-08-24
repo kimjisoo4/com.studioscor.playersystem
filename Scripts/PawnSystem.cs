@@ -65,6 +65,18 @@ namespace KimScor.Pawn
             }
         }
 
+        protected void OnEnable()
+        {
+            PlayerManager.Instance.AddPawn(this);
+        }
+        protected void OnDisable()
+        {
+#if UNITY_EDITOR
+            if (!this.gameObject.scene.isLoaded) return;
+#endif
+            PlayerManager.Instance.RemovePawn(this);
+        }
+
         public void OnPossess(ControllerSystem controller)
         {
             if (_Controller == controller)
@@ -176,14 +188,14 @@ namespace KimScor.Pawn
 
 
         #region Callback
-        public void OnPossessController()
+        protected void OnPossessController()
         {
             if (_UseDebugMode)
                 Debug.Log("OnPossessedController [" + gameObject.name + "] " + Controller);
 
             OnPossessedController?.Invoke(this, Controller);
         }
-        public void UnPossessController()
+        protected void UnPossessController()
         {
             if (_UseDebugMode)
                 Debug.Log("UnPossessedController [" + gameObject.name + "] " + Controller);
@@ -191,7 +203,7 @@ namespace KimScor.Pawn
             UnPossessedController?.Invoke(this, Controller);
         }
 
-        public void OnDie()
+        protected void OnDie()
         {
             if (_UseDebugMode)
                 Debug.Log("OnDeadCharacter [" + gameObject.name + "]");
@@ -206,14 +218,14 @@ namespace KimScor.Pawn
             OnDeadPawn?.Invoke(this);
         }
 
-        public void OnUseMovementInput()
+        protected void OnUseMovementInput()
         {
             if (_UseDebugMode)
                 Debug.Log("OnUseMovementInput [" + gameObject.name + "]");
 
             OnIgnoreMovementInput?.Invoke(this);
         }
-        public void UnUseMovementInput()
+        protected void UnUseMovementInput()
         {
             if (_UseDebugMode)
                 Debug.Log("UnUseMovementInput [" + gameObject.name + "]");
@@ -223,14 +235,14 @@ namespace KimScor.Pawn
 
 
 
-        public void OnUseRotateInput()
+        protected void OnUseRotateInput()
         {
             if (_UseDebugMode)
                 Debug.Log("OnUseRotateInput [" + gameObject.name + "]");
 
             OnIgnoreRotateInput?.Invoke(this);
         }
-        public void UnUseRotateInput()
+        protected void UnUseRotateInput()
         {
             if (_UseDebugMode)
                 Debug.Log("UnUseRotateInput [" + gameObject.name + "]");

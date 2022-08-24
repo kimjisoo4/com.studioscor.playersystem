@@ -217,6 +217,19 @@ namespace KimScor.Pawn
             }
         }
 
+        public void SetRotateInputToLookTarget()
+        {
+            if (!LookTarget)
+                return;
+
+            if (!Pawn)
+                return;
+
+            Vector3 direction = LookTarget.transform.position - Pawn.transform.position;
+
+            SetRotateInput(direction.normalized);
+        }
+
         public void SetLookTarget(Transform newLookTarget)
         {
             if (_LookTarget == newLookTarget)
