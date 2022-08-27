@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Diagnostics;
 
 namespace KimScor.Pawn
 {
@@ -8,7 +9,6 @@ namespace KimScor.Pawn
     {
         #region Events
         public delegate void ChangedControllerHandler(PawnSystem pawn, ControllerSystem controller);
-        public delegate void DeadPawnHandler(PawnSystem pawn);
         public delegate void IgnoreInput(PawnSystem pawn);
         #endregion
 
@@ -33,16 +33,10 @@ namespace KimScor.Pawn
 
         [Header(" [ Use DebugMode] ")]
         [SerializeField] private bool _UseDebugMode = false;
-        [SerializeField] private bool _IsDead = false;
-
-        public bool IsDead => _IsDead;
-        public bool IsAlive => !_IsDead;
         public bool IsPlayer => _IsPlayer;
         
         public event ChangedControllerHandler OnPossessedController;
         public event ChangedControllerHandler UnPossessedController;
-
-        public event DeadPawnHandler OnDeadPawn;
 
         public event IgnoreInput OnIgnoreMovementInput;
         public event IgnoreInput UnIgnoreMovementInput;
@@ -50,9 +44,31 @@ namespace KimScor.Pawn
         public event IgnoreInput OnIgnoreRotateInput;
         public event IgnoreInput UnIgnoreRotateInput;
 
-        private void Awake()
+        protected void OnEnable()
         {
-            if (_IsPlayer)
+            OnInitialization();
+
+            PlayerManager.Instance.AddPawn(this);
+        }
+        protected void OnDisable()
+        {
+#if UNITY_EDITOR
+            if (!this.gameObject.scene.isLoaded) return;
+#endif
+            PlayerManager.Instance.RemovePawn(this);
+        }
+
+        private void OnInitialization()
+        {
+            if (_Controller != null)
+            {
+                _Controller.OnPossess(this);
+
+                return;
+            }
+            
+                
+            if (_IsPlayer && PlayerManager.Instance.PlayerCharacter == null)
             {
                 PlayerManager.Instance.PlayerController.OnPossess(this);
             }
@@ -63,18 +79,6 @@ namespace KimScor.Pawn
                     SpawnAndPossessAiController();
                 }
             }
-        }
-
-        protected void OnEnable()
-        {
-            PlayerManager.Instance.AddPawn(this);
-        }
-        protected void OnDisable()
-        {
-#if UNITY_EDITOR
-            if (!this.gameObject.scene.isLoaded) return;
-#endif
-            PlayerManager.Instance.RemovePawn(this);
         }
 
         public void OnPossess(ControllerSystem controller)
@@ -121,7 +125,7 @@ namespace KimScor.Pawn
             }
         }
 
-        public void SpawnAndPossessAiController()
+        private void SpawnAndPossessAiController()
         {
             if (_DefaultController != null)
             {
@@ -182,53 +186,42 @@ namespace KimScor.Pawn
             if (IgnoreRotateInput || !Controller)
                 return Vector3.zero;
 
-            return Controller.RotateDirection;
+            return Controller.TurnDirection;
         }
         #endregion
 
+        #region EDITOR
+        [Conditional("UNITY_EDITOR")]
+        private void Log(string log)
+        {
+            if (_UseDebugMode)
+                UnityEngine.Debug.Log("PawnSystem [" + gameObject.name  + "] : " + log, this);
+        }
+        #endregion
 
         #region Callback
         protected void OnPossessController()
         {
-            if (_UseDebugMode)
-                Debug.Log("OnPossessedController [" + gameObject.name + "] " + Controller);
+            Log("On Possessed Controller [" + gameObject.name + "] " + Controller);
 
             OnPossessedController?.Invoke(this, Controller);
         }
         protected void UnPossessController()
         {
-            if (_UseDebugMode)
-                Debug.Log("UnPossessedController [" + gameObject.name + "] " + Controller);
+            Log("Un Possessed Controller [" + gameObject.name + "] " + Controller);
 
             UnPossessedController?.Invoke(this, Controller);
         }
 
-        protected void OnDie()
-        {
-            if (_UseDebugMode)
-                Debug.Log("OnDeadCharacter [" + gameObject.name + "]");
-
-            if (!IsAlive)
-            {
-                return;
-            }
-
-            _IsDead = true;
-
-            OnDeadPawn?.Invoke(this);
-        }
-
         protected void OnUseMovementInput()
         {
-            if (_UseDebugMode)
-                Debug.Log("OnUseMovementInput [" + gameObject.name + "]");
+            Log("On Use MovementInput");
 
             OnIgnoreMovementInput?.Invoke(this);
         }
         protected void UnUseMovementInput()
         {
-            if (_UseDebugMode)
-                Debug.Log("UnUseMovementInput [" + gameObject.name + "]");
+            Log("Un Use MovementInput");
 
             UnIgnoreMovementInput?.Invoke(this);
         }
@@ -237,15 +230,13 @@ namespace KimScor.Pawn
 
         protected void OnUseRotateInput()
         {
-            if (_UseDebugMode)
-                Debug.Log("OnUseRotateInput [" + gameObject.name + "]");
+            Log("On Use Rotate Input");
 
             OnIgnoreRotateInput?.Invoke(this);
         }
         protected void UnUseRotateInput()
         {
-            if (_UseDebugMode)
-                Debug.Log("UnUseRotateInput [" + gameObject.name + "]");
+            Log("Un Use Rotate Input");
 
             UnIgnoreRotateInput?.Invoke(this);
         }

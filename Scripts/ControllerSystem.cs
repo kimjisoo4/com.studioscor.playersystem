@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Diagnostics;
 
 namespace KimScor.Pawn
 {
@@ -34,9 +35,13 @@ namespace KimScor.Pawn
         [SerializeField] private bool _UseMovementInput = true;
         public bool UseMovementInput => _UseMovementInput;
 
-        [Header(" [ Use Rotate Input ]")]
-        [SerializeField] private bool _UseRotateInput = true;
-        public bool UseRotateInput => _UseRotateInput;
+        [Header(" [ Use Turn Input ]")]
+        [SerializeField] private bool _UseTurnInput = true;
+        public bool UseTurnInput => _UseTurnInput;
+
+        [Header(" [ Use Look Input ] ")]
+        [SerializeField] private bool _UseLookInput = true;
+        public bool UseLookInput => _UseLookInput;
 
         [Header(" [ Look Target ] ")]
         [SerializeField] private Transform _LookTarget;
@@ -52,8 +57,11 @@ namespace KimScor.Pawn
         private float _MoveStrength = 0f;
         public float MoveStrength => _MoveStrength;
 
-        private Vector3 _RotateDirection = Vector3.zero;
-        public Vector3 RotateDirection => _RotateDirection;
+        private Vector3 _TurnDirection = Vector3.zero;
+        public Vector3 TurnDirection => _TurnDirection;
+
+        private Vector3 _LookDirection = Vector3.zero;
+        public Vector3 LookDirection => _LookDirection;
 
 
         public event OnChangedPawnHandler OnPossessedPawn;
@@ -62,14 +70,20 @@ namespace KimScor.Pawn
         public event InputHandler OnUsedMovementInput;
         public event InputHandler UnUsedMovementInput;
 
-        public event InputHandler OnUsedRotateInput;
-        public event InputHandler UnUsedRotateInput;
+        public event InputHandler OnUsedTurnInput;
+        public event InputHandler UnUsedTurnInput;
+
+        public event InputHandler OnUsedLookInput;
+        public event InputHandler UnUsedLookInput;
 
         public event StartMovementInputHandler OnStartedMovementInput;
         public event FinishMovementInputHandler OnFinishedMovementInput;
 
-        public event StartRotateInputHander OnStartedRotatetInput;
-        public event FinishRotateInputHander OnFinishedRotateInput;
+        public event StartRotateInputHander OnStartedTurntInput;
+        public event FinishRotateInputHander OnFinishedTurnInput;
+
+        public event StartRotateInputHander OnStartedLookInput;
+        public event FinishRotateInputHander OnFinishedLookInput;
 
         public event LookTargetHandler OnChangedLookTarget;
 
@@ -84,8 +98,6 @@ namespace KimScor.Pawn
             {
                 Pawn.UnPossess(this);
 
-                ResetPossessPawn();
-
                 UnPossessPawn();
 
                 _Pawn = null;
@@ -96,8 +108,6 @@ namespace KimScor.Pawn
             if (Pawn != null)
             {
                 Pawn.OnPossess(this);
-
-                SetupPossessPawn();
 
                 OnPossessPawn();
             }
@@ -113,20 +123,6 @@ namespace KimScor.Pawn
 
                 Destroy(gameObject);
             }
-        }
-
-        private void SetupPossessPawn()
-        {
-            Pawn.OnDeadPawn += Pawn_OnDeadPawn;
-        }
-        private void ResetPossessPawn()
-        {
-            Pawn.OnDeadPawn -= Pawn_OnDeadPawn;
-        }
-
-        private void Pawn_OnDeadPawn(PawnSystem pawn)
-        {
-            Destroy(gameObject, Time.deltaTime);
         }
 
         public virtual bool CheckHostile(ControllerSystem targetController)
@@ -183,41 +179,73 @@ namespace KimScor.Pawn
             }
         }
 
-        public void SetUseRotateInput(bool useRotateInput)
+        public void SetUseTurnInput(bool useTurnInput)
         {
-            if (_UseRotateInput == useRotateInput)
+            if (_UseTurnInput == useTurnInput)
             {
                 return;
             }
 
-            _UseRotateInput = useRotateInput;
+            _UseTurnInput = useTurnInput;
 
-            if (UseRotateInput)
-                OnUseRotateInput();
+            if (UseTurnInput)
+                OnUseTurnInput();
             else
-                UnUseRotateInput();
+                UnUseTurnInput();
         }
 
-        public void SetRotateInput(Vector3 direction)
+        public void SetTurnInput(Vector3 direction)
         {
-            if (!UseRotateInput)
+            if (!UseTurnInput)
                 return;
 
             Vector3 prevDirection = direction;
 
-            _RotateDirection = direction;
+            _TurnDirection = direction;
 
-            if (prevDirection == Vector3.zero && _RotateDirection != Vector3.zero)
+            if (prevDirection == Vector3.zero && _TurnDirection != Vector3.zero)
             {
-                OnStartRotateInput();
+                OnStartTurnInput();
             }
-            else if (prevDirection != Vector3.zero && _RotateDirection == Vector3.zero)
+            else if (prevDirection != Vector3.zero && _TurnDirection == Vector3.zero)
             {
-                OnFinishRotateInput(prevDirection);
+                OnFinishTurnInput(prevDirection);
+            }
+        }
+        public void SetUseLookInput(bool useLookInput)
+        {
+            if (_UseLookInput == useLookInput)
+            {
+                return;
+            }
+
+            _UseLookInput = useLookInput;
+
+            if (UseTurnInput)
+                OnUseLookInput();
+            else
+                UnUseLookInput();
+        }
+        public void SetLookInput(Vector3 direction)
+        {
+            if (!UseLookInput)
+                return;
+
+            Vector3 prevDirection = direction;
+
+            _LookDirection = direction;
+
+            if (prevDirection == Vector3.zero && _LookDirection != Vector3.zero)
+            {
+                OnStartLookInput();
+            }
+            else if (prevDirection != Vector3.zero && _LookDirection == Vector3.zero)
+            {
+                OnFinishLookInput(prevDirection);
             }
         }
 
-        public void SetRotateInputToLookTarget()
+        public void SetLookInputToTarget()
         {
             if (!LookTarget)
                 return;
@@ -227,7 +255,7 @@ namespace KimScor.Pawn
 
             Vector3 direction = LookTarget.transform.position - Pawn.transform.position;
 
-            SetRotateInput(direction.normalized);
+            SetTurnInput(direction.normalized);
         }
 
         public void SetLookTarget(Transform newLookTarget)
@@ -243,20 +271,27 @@ namespace KimScor.Pawn
 
             OnChangeLookTarget(prevTarget);
         }
+        #region EDITOR
+
+        [Conditional("UNITY_EDITOR")]
+        protected void Log(string log)
+        {
+            if (_UseDebugMode)
+                UnityEngine.Debug.Log("Controller [" + gameObject.name + "] :" + log);
+        }
+        #endregion
 
 
         #region Callback
         public void OnPossessPawn()
         {
-            if (_UseDebugMode)
-                Debug.Log("OnPossessedPawn [" + gameObject.name + "] " + Pawn);
+            Log("On Possessed Pawn - " + Pawn.name);
 
             OnPossessedPawn?.Invoke(this, Pawn);
         }
         public void UnPossessPawn()
         {
-            if (_UseDebugMode)
-                Debug.Log("UnPossessPawn [" + gameObject.name + "] " + Pawn);
+            Log("Un Possessed Pawn - " + Pawn.name);
 
             UnPossessedPawn?.Invoke(this, Pawn);
         }
@@ -264,15 +299,13 @@ namespace KimScor.Pawn
 
         public void OnUseMovementInput()
         {
-            if (_UseDebugMode)
-                Debug.Log("OnUseMovementInput [" + gameObject.name + "]");
+            Log("On Use Movement Input");
 
             OnUsedMovementInput?.Invoke(this);
         }
         public void UnUseMovementInput()
         {
-            if (_UseDebugMode)
-                Debug.Log("UnUseMovementInput [" + gameObject.name + "]");
+            Log("Un Use Movement Input");
 
             UnUsedMovementInput?.Invoke(this);
         }
@@ -280,54 +313,71 @@ namespace KimScor.Pawn
 
         public void OnStartMovementInput()
         {
-            if (_UseDebugMode)
-                Debug.Log("OnStartMovementInput [" + gameObject.name + "] " + MoveDirection + " * " + MoveStrength);
+            Log("On Start Movement Input -" + MoveDirection + " * " + MoveStrength);
 
             OnStartedMovementInput?.Invoke(this, MoveDirection, MoveStrength);
         }
         public void OnFinishMovementInput(Vector3 prevDirection, float prevMoveStrength)
         {
-            if (_UseDebugMode)
-                Debug.Log("OnFinishMovementInput [" + gameObject.name + "] " + prevDirection + " * " + prevMoveStrength);
+            Log("On Finish Movement Input -" + prevDirection + " * " + prevMoveStrength);
 
             OnFinishedMovementInput?.Invoke(this, prevDirection, prevMoveStrength);
         }
 
 
-        public void OnUseRotateInput()
+        public void OnUseTurnInput()
         {
-            if (_UseDebugMode)
-                Debug.Log("OnUseRotateInput [" + gameObject.name + "]");
+            Log("On Use Turn Input");
 
-            OnUsedRotateInput?.Invoke(this);
+            OnUsedTurnInput?.Invoke(this);
         }
-        public void UnUseRotateInput()
+        public void UnUseTurnInput()
         {
-            if (_UseDebugMode)
-                Debug.Log("UnUseRotateInput [" + gameObject.name + "]");
+            Log("Un Use Turn Input");
 
-            UnUsedRotateInput?.Invoke(this);
+            UnUsedTurnInput?.Invoke(this);
+        }
+        public void OnStartTurnInput()
+        {
+            Log("On Start Turn Input - " + TurnDirection);
+
+            OnStartedTurntInput?.Invoke(this, TurnDirection);
+        }
+        public void OnFinishTurnInput(Vector3 prevDirection)
+        {
+            Log("On Finish Turn Input - " + prevDirection);
+
+            OnFinishedTurnInput?.Invoke(this, prevDirection);
         }
 
-        public void OnStartRotateInput()
+        public void OnUseLookInput()
         {
-            if (_UseDebugMode)
-                Debug.Log("OnStartRotateInput [" + gameObject.name + "] " + RotateDirection);
+            Log("On Use Look Input");
 
-            OnStartedRotatetInput?.Invoke(this, RotateDirection);
+            OnUsedLookInput?.Invoke(this);
         }
-        public void OnFinishRotateInput(Vector3 prevDirection)
+        public void UnUseLookInput()
         {
-            if (_UseDebugMode)
-                Debug.Log("OnFinishRotateInput [" + gameObject.name + "] " + prevDirection);
+            Log("Un Use Look Input");
 
-            OnFinishedRotateInput?.Invoke(this, prevDirection);
+            UnUsedLookInput?.Invoke(this);
+        }
+        public void OnStartLookInput()
+        {
+            Log("On Start Look Input - " + TurnDirection);
+
+            OnStartedLookInput?.Invoke(this, TurnDirection);
+        }
+        public void OnFinishLookInput(Vector3 prevDirection)
+        {
+            Log("On Finish Look Input - " + prevDirection);
+
+            OnFinishedLookInput?.Invoke(this, prevDirection);
         }
 
         public void OnChangeLookTarget(Transform prevLookTarget = null)
         {
-            if (_UseDebugMode)
-                Debug.Log("OnChangeLookTarget [" + gameObject.name + "] New Look Target : " + _LookTarget + " Prev Look Target : " + prevLookTarget);
+            Log("On Change Look Target - New Look Target : " + _LookTarget + " Prev Look Target : " + prevLookTarget);
 
             OnChangedLookTarget?.Invoke(this, _LookTarget, prevLookTarget);
         }
