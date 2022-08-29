@@ -9,7 +9,7 @@ namespace KimScor.Pawn
     {
         #region Events
         public delegate void ChangedControllerHandler(PawnSystem pawn, ControllerSystem controller);
-        public delegate void IgnoreInput(PawnSystem pawn);
+        public delegate void IgnoreInput(PawnSystem pawn, bool ignore);
         #endregion
 
         [Header(" [ Use Player Controller ] ")]
@@ -38,11 +38,8 @@ namespace KimScor.Pawn
         public event ChangedControllerHandler OnPossessedController;
         public event ChangedControllerHandler UnPossessedController;
 
-        public event IgnoreInput OnIgnoreMovementInput;
-        public event IgnoreInput UnIgnoreMovementInput;
-
-        public event IgnoreInput OnIgnoreRotateInput;
-        public event IgnoreInput UnIgnoreRotateInput;
+        public event IgnoreInput OnChangedIgnoreMovementInput;
+        public event IgnoreInput OnChangedIgnoreRotateInput;
 
         protected void OnEnable()
         {
@@ -136,7 +133,7 @@ namespace KimScor.Pawn
         }
 
         #region Setter
-        public void SetUseMovementInput(bool useMovementInput)
+        public void SetIgnoreMovementInput(bool useMovementInput)
         {
             if (_IgnoreMovementInput == useMovementInput)
             {
@@ -145,12 +142,9 @@ namespace KimScor.Pawn
 
             _IgnoreMovementInput = useMovementInput;
 
-            if (IgnoreMovementInput)
-                OnUseMovementInput();
-            else
-                UnUseMovementInput();
+            OnChangeIgnoreMovementInput();
         }
-        public void SetUseRotateInput(bool useRotateInput)
+        public void SetIgnoreRotateInput(bool useRotateInput)
         {
             if (_IgnoreRotateInput == useRotateInput)
             {
@@ -159,10 +153,7 @@ namespace KimScor.Pawn
 
             _IgnoreRotateInput = useRotateInput;
 
-            if (IgnoreRotateInput)
-                OnUseRotateInput();
-            else
-                UnUseRotateInput();
+            OnChangeIgnoreRotateInput();
         }
         #endregion
 
@@ -213,32 +204,18 @@ namespace KimScor.Pawn
             UnPossessedController?.Invoke(this, Controller);
         }
 
-        protected void OnUseMovementInput()
+        protected void OnChangeIgnoreMovementInput()
         {
-            Log("On Use MovementInput");
+            Log("On Change Ignore Movement Input : " + IgnoreMovementInput);
 
-            OnIgnoreMovementInput?.Invoke(this);
-        }
-        protected void UnUseMovementInput()
-        {
-            Log("Un Use MovementInput");
-
-            UnIgnoreMovementInput?.Invoke(this);
+            OnChangedIgnoreMovementInput?.Invoke(this, IgnoreMovementInput);
         }
 
-
-
-        protected void OnUseRotateInput()
+        protected void OnChangeIgnoreRotateInput()
         {
-            Log("On Use Rotate Input");
+            Log("On Change Ignore Rotate Input : " + IgnoreRotateInput);
 
-            OnIgnoreRotateInput?.Invoke(this);
-        }
-        protected void UnUseRotateInput()
-        {
-            Log("Un Use Rotate Input");
-
-            UnIgnoreRotateInput?.Invoke(this);
+            OnChangedIgnoreRotateInput?.Invoke(this, IgnoreRotateInput);
         }
 
         #endregion

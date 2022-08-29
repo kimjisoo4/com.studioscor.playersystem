@@ -143,6 +143,7 @@ namespace KimScor.Pawn
         public virtual bool GetFriendly() =>_Affiliation.Equals(EAffiliation.Friendly);
 
 
+        
         public void SetUseMovementInput(bool useMovementInput)
         {
             if (_UseMovementInput == useMovementInput)
@@ -212,6 +213,25 @@ namespace KimScor.Pawn
                 OnFinishTurnInput(prevDirection);
             }
         }
+
+
+        #region Look
+
+        public Vector3 GetLookDirection()
+        {
+            if (Pawn == null)
+                return Vector3.zero;
+
+            if (LookTarget != null)
+            {
+                return (LookTarget.position - Pawn.transform.position).normalized;
+            }
+            else
+            {
+                return LookDirection;
+            }
+        }
+
         public void SetUseLookInput(bool useLookInput)
         {
             if (_UseLookInput == useLookInput)
@@ -244,18 +264,39 @@ namespace KimScor.Pawn
                 OnFinishLookInput(prevDirection);
             }
         }
+        public void SetLookInput(Transform target)
+        {
+            if (!UseLookInput)
+                return;
+
+            if (transform == null)
+                return;
+
+            if (Pawn == null)
+                return;
+
+            Vector3 direction = target.transform.position - Pawn.transform.position;
+
+            direction.Normalize();
+
+            SetLookInput(direction);
+        }
 
         public void SetLookInputToTarget()
         {
-            if (!LookTarget)
+            if (LookTarget == null)
+            {
+                SetLookInput(Vector3.zero);
+
                 return;
+            }
 
             if (!Pawn)
                 return;
 
             Vector3 direction = LookTarget.transform.position - Pawn.transform.position;
 
-            SetTurnInput(direction.normalized);
+            SetLookInput(direction.normalized);
         }
 
         public void SetLookTarget(Transform newLookTarget)
@@ -269,8 +310,22 @@ namespace KimScor.Pawn
 
             _LookTarget = newLookTarget;
 
+
+            if (_LookTarget == null) 
+            {
+                SetLookInput(prevTarget);
+            }
+            else
+            {
+                SetLookInput(_LookTarget);
+            }
+            
+
             OnChangeLookTarget(prevTarget);
         }
+
+        #endregion
+
         #region EDITOR
 
         [Conditional("UNITY_EDITOR")]
@@ -279,6 +334,34 @@ namespace KimScor.Pawn
             if (_UseDebugMode)
                 UnityEngine.Debug.Log("Controller [" + gameObject.name + "] :" + log);
         }
+
+        private void OnDrawGizmosSelected()
+        {
+            if (!_UseDebugMode)
+                return;
+
+            if (_Pawn == null)
+                return;
+
+            Vector3 start = _Pawn.transform.position + Vector3.up;
+            Gizmos.color = Color.blue;
+            Gizmos.DrawRay(start, MoveDirection * 3f);
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawRay(start, TurnDirection * 3f);
+
+            Gizmos.color = Color.yellow;
+            if (LookTarget == null)
+            {
+                Gizmos.DrawRay(start, LookDirection * 3f);
+            }
+            else
+            {
+                Gizmos.DrawRay(start, GetLookDirection() * 3f);
+                Gizmos.DrawWireSphere(LookTarget.position + Vector3.up, 1f);
+            }
+        }
+
         #endregion
 
 
