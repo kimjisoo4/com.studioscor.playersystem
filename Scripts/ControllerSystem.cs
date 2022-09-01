@@ -20,35 +20,35 @@ namespace KimScor.Pawn
         #endregion
 
         [Header(" [ Controlled Pawn ] ")]
-        [SerializeField] private PawnSystem _Pawn;
+        [SerializeField] protected PawnSystem _Pawn;
         public PawnSystem Pawn => _Pawn;
 
         [Header(" [ Player Controller] ")]
-        [SerializeField] private bool _IsPlayerController = false;
+        [SerializeField] protected bool _IsPlayerController = false;
         public bool IsPlayerController => _IsPlayerController;
 
         [Header(" [ Team ] ")]
-        [SerializeField] private EAffiliation _Affiliation = EAffiliation.Hostile;
+        [SerializeField] protected EAffiliation _Affiliation = EAffiliation.Hostile;
         public EAffiliation Affiliation => _Affiliation;
 
         [Header(" [ Use Movement Input ] ")]
-        [SerializeField] private bool _UseMovementInput = true;
+        [SerializeField] protected bool _UseMovementInput = true;
         public bool UseMovementInput => _UseMovementInput;
 
         [Header(" [ Use Turn Input ]")]
-        [SerializeField] private bool _UseTurnInput = true;
+        [SerializeField] protected bool _UseTurnInput = true;
         public bool UseTurnInput => _UseTurnInput;
 
         [Header(" [ Use Look Input ] ")]
-        [SerializeField] private bool _UseLookInput = true;
+        [SerializeField] protected bool _UseLookInput = true;
         public bool UseLookInput => _UseLookInput;
 
         [Header(" [ Look Target ] ")]
-        [SerializeField] private Transform _LookTarget;
+        [SerializeField] protected Transform _LookTarget;
         public Transform LookTarget => _LookTarget;
 
         [Header(" [ Use DebugMode ]")]
-        [SerializeField] private bool _UseDebugMode = false;
+        [SerializeField] protected bool _UseDebugMode = false;
 
 
         private Vector3 _MoveDirection = Vector3.zero;
