@@ -87,43 +87,38 @@ namespace KimScor.Pawn
 
         public event LookTargetHandler OnChangedLookTarget;
 
+
         public void OnPossess(PawnSystem pawn)
         {
             if (Pawn == pawn)
-            {
                 return;
-            }
 
-            if (Pawn != null)
-            {
-                Pawn.UnPossess(this);
-
-                UnPossessPawn();
-
-                _Pawn = null;
-            }
+            UnPossess(Pawn);
 
             _Pawn = pawn;
 
-            if (Pawn != null)
-            {
-                Pawn.OnPossess(this);
+            if (!Pawn)
+                return;
 
-                OnPossessPawn();
-            }
+            Pawn.OnPossess(this);
+
+            OnPossessPawn();
         }
-
         public void UnPossess(PawnSystem pawn)
         {
-            if (_Pawn == pawn)
-            {
-                Pawn.UnPossess(this);
+            if (!Pawn)
+                return;
 
-                _Pawn = null;
+            if (_Pawn != pawn)
+                return;
 
-                Destroy(gameObject);
-            }
+            _Pawn = null;
+
+            pawn.UnPossess(this);
+
+            UnPossessPawn(pawn);
         }
+        
 
         public virtual bool CheckHostile(ControllerSystem targetController)
         {
@@ -168,7 +163,7 @@ namespace KimScor.Pawn
             float prevMoveStrength = MoveStrength;
 
             _MoveDirection = direction;
-            _MoveStrength = strength;
+            _MoveStrength = Mathf.Clamp01(strength);
 
             if (prevDirection == Vector3.zero && direction != Vector3.zero)
             {
@@ -366,27 +361,27 @@ namespace KimScor.Pawn
 
 
         #region Callback
-        public void OnPossessPawn()
+        protected void OnPossessPawn()
         {
             Log("On Possessed Pawn - " + Pawn.name);
 
             OnPossessedPawn?.Invoke(this, Pawn);
         }
-        public void UnPossessPawn()
+        protected void UnPossessPawn(PawnSystem prevPawn)
         {
-            Log("Un Possessed Pawn - " + Pawn.name);
+            Log("Un Possessed Pawn - " + prevPawn.name);
 
-            UnPossessedPawn?.Invoke(this, Pawn);
+            UnPossessedPawn?.Invoke(this, prevPawn);
         }
 
 
-        public void OnUseMovementInput()
+        protected void OnUseMovementInput()
         {
             Log("On Use Movement Input");
 
             OnUsedMovementInput?.Invoke(this);
         }
-        public void UnUseMovementInput()
+        protected void UnUseMovementInput()
         {
             Log("Un Use Movement Input");
 
@@ -394,13 +389,13 @@ namespace KimScor.Pawn
         }
 
 
-        public void OnStartMovementInput()
+        protected void OnStartMovementInput()
         {
             Log("On Start Movement Input -" + MoveDirection + " * " + MoveStrength);
 
             OnStartedMovementInput?.Invoke(this, MoveDirection, MoveStrength);
         }
-        public void OnFinishMovementInput(Vector3 prevDirection, float prevMoveStrength)
+        protected void OnFinishMovementInput(Vector3 prevDirection, float prevMoveStrength)
         {
             Log("On Finish Movement Input -" + prevDirection + " * " + prevMoveStrength);
 
@@ -408,57 +403,57 @@ namespace KimScor.Pawn
         }
 
 
-        public void OnUseTurnInput()
+        protected void OnUseTurnInput()
         {
             Log("On Use Turn Input");
 
             OnUsedTurnInput?.Invoke(this);
         }
-        public void UnUseTurnInput()
+        protected void UnUseTurnInput()
         {
             Log("Un Use Turn Input");
 
             UnUsedTurnInput?.Invoke(this);
         }
-        public void OnStartTurnInput()
+        protected void OnStartTurnInput()
         {
             Log("On Start Turn Input - " + TurnDirection);
 
             OnStartedTurntInput?.Invoke(this, TurnDirection);
         }
-        public void OnFinishTurnInput(Vector3 prevDirection)
+        protected void OnFinishTurnInput(Vector3 prevDirection)
         {
             Log("On Finish Turn Input - " + prevDirection);
 
             OnFinishedTurnInput?.Invoke(this, prevDirection);
         }
 
-        public void OnUseLookInput()
+        protected void OnUseLookInput()
         {
             Log("On Use Look Input");
 
             OnUsedLookInput?.Invoke(this);
         }
-        public void UnUseLookInput()
+        protected void UnUseLookInput()
         {
             Log("Un Use Look Input");
 
             UnUsedLookInput?.Invoke(this);
         }
-        public void OnStartLookInput()
+        protected void OnStartLookInput()
         {
             Log("On Start Look Input - " + TurnDirection);
 
             OnStartedLookInput?.Invoke(this, TurnDirection);
         }
-        public void OnFinishLookInput(Vector3 prevDirection)
+        protected void OnFinishLookInput(Vector3 prevDirection)
         {
             Log("On Finish Look Input - " + prevDirection);
 
             OnFinishedLookInput?.Invoke(this, prevDirection);
         }
 
-        public void OnChangeLookTarget(Transform prevLookTarget = null)
+        protected void OnChangeLookTarget(Transform prevLookTarget = null)
         {
             Log("On Change Look Target - New Look Target : " + _LookTarget + " Prev Look Target : " + prevLookTarget);
 

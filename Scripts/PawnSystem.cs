@@ -19,6 +19,7 @@ namespace KimScor.Pawn
         [SerializeField] private ControllerSystem _DefaultController;
 
         [SerializeField] private ControllerSystem _Controller;
+        public ControllerSystem DefaultController => _DefaultController;
         public ControllerSystem Controller => _Controller;
 
         [SerializeField] private bool _UseAutoPossesed = true;
@@ -34,6 +35,7 @@ namespace KimScor.Pawn
         [Header(" [ Use DebugMode] ")]
         [SerializeField] private bool _UseDebugMode = false;
         public bool IsPlayer => _IsPlayer;
+        public bool IsPossessed => Controller;
         
         public event ChangedControllerHandler OnPossessedController;
         public event ChangedControllerHandler UnPossessedController;
@@ -80,46 +82,51 @@ namespace KimScor.Pawn
 
         public void OnPossess(ControllerSystem controller)
         {
-            if (_Controller == controller)
+            if (Controller == controller)
             {
                 return;
             }
 
-            if (_Controller != null)
-            {
-                _Controller.UnPossess(this);
-            }
+            UnPossess(Controller);
 
             _Controller = controller;
 
-            if (_Controller is not null)
-            {
-                _Controller.OnPossess(this);
+            if (!Controller)
+                return;
 
-                if (_Controller.IsPlayerController)
-                {
-                    _IsPlayer = true;
-                }
+            if (Controller.IsPlayerController)
+            {
+                _IsPlayer = true;
             }
+
+            Controller.OnPossess(this);
+
+            OnPossessController();
         }
 
         public void UnPossess(ControllerSystem controller)
         {
-            if (_Controller == controller) 
+            if (!controller)
+                return;
+
+            if (Controller != controller)
+                return;
+
+            _Controller = null;
+
+            controller.UnPossess(this);
+
+            if (controller.IsPlayerController)
             {
-                _Controller = null;
+                _IsPlayer = false;
 
-                if (controller.IsPlayerController)
+                if (_UseAutoPossesed)
                 {
-                    _IsPlayer = false;
-
-                    if(_UseAutoPossesed)
-                    {
-                        SpawnAndPossessAiController();
-                    }
-                    
+                    SpawnAndPossessAiController();
                 }
             }
+
+            UnPossessController(controller);
         }
 
         private void SpawnAndPossessAiController()
@@ -197,11 +204,11 @@ namespace KimScor.Pawn
 
             OnPossessedController?.Invoke(this, Controller);
         }
-        protected void UnPossessController()
+        protected void UnPossessController(ControllerSystem prevController)
         {
-            Log("Un Possessed Controller [" + gameObject.name + "] " + Controller);
+            Log("Un Possessed Controller [" + gameObject.name + "] " + prevController);
 
-            UnPossessedController?.Invoke(this, Controller);
+            UnPossessedController?.Invoke(this, prevController);
         }
 
         protected void OnChangeIgnoreMovementInput()

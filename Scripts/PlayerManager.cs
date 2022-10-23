@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-
+using System;
 
 namespace KimScor.Pawn
 {
@@ -26,7 +26,6 @@ namespace KimScor.Pawn
 
         public event SpawnPawnHandler OnAddedPawn;
         public event SpawnPawnHandler OnRemovedPawn;
-
         public static PlayerManager Instance
         {
             get
