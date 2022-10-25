@@ -63,6 +63,7 @@ namespace KimScor.Pawn
         private Vector3 _LookDirection = Vector3.zero;
         public Vector3 LookDirection => _LookDirection;
 
+        public bool IsPossess => Pawn;
 
         public event OnChangedPawnHandler OnPossessedPawn;
         public event OnChangedPawnHandler UnPossessedPawn;
@@ -124,6 +125,8 @@ namespace KimScor.Pawn
         {
             switch (Affiliation)
             {
+                case EAffiliation.Neutral:
+                    return false;
                 case EAffiliation.Friendly:
                     return targetController.GetHostile();
                 case EAffiliation.Hostile:

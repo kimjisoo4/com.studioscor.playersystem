@@ -43,18 +43,21 @@ namespace KimScor.Pawn
         public event IgnoreInput OnChangedIgnoreMovementInput;
         public event IgnoreInput OnChangedIgnoreRotateInput;
 
-        protected void OnEnable()
+        private void Awake()
         {
-            OnInitialization();
-
             PlayerManager.Instance.AddPawn(this);
         }
-        protected void OnDisable()
+        private void OnDestroy()
         {
 #if UNITY_EDITOR
             if (!this.gameObject.scene.isLoaded) return;
 #endif
             PlayerManager.Instance.RemovePawn(this);
+        }
+        
+        protected void OnEnable()
+        {
+            OnInitialization();
         }
 
         private void OnInitialization()
@@ -65,8 +68,7 @@ namespace KimScor.Pawn
 
                 return;
             }
-            
-                
+
             if (_IsPlayer && PlayerManager.Instance.PlayerCharacter == null)
             {
                 PlayerManager.Instance.PlayerController.OnPossess(this);

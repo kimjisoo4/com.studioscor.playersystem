@@ -62,9 +62,6 @@ namespace KimScor.Pawn
 
         public void AddPawn(PawnSystem pawnSystem)
         {
-            if (pawnSystem.IsPlayer)
-                return;
-
             _AiPawns.Add(pawnSystem);
 
             OnAddedPawn?.Invoke(this, pawnSystem);
@@ -72,9 +69,6 @@ namespace KimScor.Pawn
         }
         public void RemovePawn(PawnSystem pawnSystem)
         {
-            if (pawnSystem.IsPlayer)
-                return;
-
             _AiPawns.Add(pawnSystem);
 
             OnRemovedPawn?.Invoke(this, pawnSystem);
