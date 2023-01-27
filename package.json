@@ -1,6 +1,6 @@
 {
-  "name": "com.studioscor.pawnsystem",
+  "name": "com.studioscor.playersystem",
   "version": "0.0.1",
-  "displayName": "StudioScor - PawnSystem",
-  "description": "Pawn System - StudioScor"
+  "displayName": "StudioScor - PlayerSystem",
+  "description": "PlayerSystem - StudioScor"
 }

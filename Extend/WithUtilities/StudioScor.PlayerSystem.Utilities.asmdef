@@ -1,0 +1,23 @@
+{
+    "name": "StudioScor.PlayerSystem.Utilities",
+    "rootNamespace": "StudioScor.PlayerSystem.Utilities",
+    "references": [
+        "GUID:b416e774ede215f448014d6dd80b0293",
+        "GUID:0e56af4e027762c43b7508efc3b00495"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.studioscor.utilities",
+            "expression": "0.0.0",
+            "define": "SCOR_ENABLE_UTILITIES"
+        }
+    ],
+    "noEngineReferences": false
+}
