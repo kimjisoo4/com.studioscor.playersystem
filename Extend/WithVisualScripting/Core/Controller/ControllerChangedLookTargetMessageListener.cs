@@ -6,34 +6,38 @@ namespace StudioScor.PlayerSystem.VisualScripting
 {
     public class ControllerChangedLookTargetMessageListener : MessageListener
     {
-        public class ChangedLookTarget
+        public class ChangedLookTargetValue
         {
             public Transform CurrentLookTarget;
             public Transform PrevLookTarget;
-
-            public ChangedLookTarget(Transform currentLookTarget, Transform prevLookTarget)
-            {
-                CurrentLookTarget = currentLookTarget;
-                PrevLookTarget = prevLookTarget;
-            }
         }
+
+        private ChangedLookTargetValue _ChangedLookTargetValue;
+
 
         private void Awake()
         {
             var controller = GetComponent<ControllerComponent>();
+            _ChangedLookTargetValue = new();
 
             controller.OnChangedLookTarget += Controller_OnChangedLookTarget;
         }
         private void OnDestroy()
         {
+            _ChangedLookTargetValue = null;
+
             if (TryGetComponent(out ControllerComponent controller))
             {
                 controller.OnChangedLookTarget -= Controller_OnChangedLookTarget;
             }
         }
+
         private void Controller_OnChangedLookTarget(ControllerComponent controller, Transform currentLookTarget, Transform prevLookTarget)
         {
-            EventBus.Trigger(new EventHook(PlayerSystemWithVisualScripting.CONTROLLER_ON_CHANGED_LOOK_TARGET, controller), new ChangedLookTarget(currentLookTarget, prevLookTarget));
+            _ChangedLookTargetValue.CurrentLookTarget = currentLookTarget;
+            _ChangedLookTargetValue.PrevLookTarget = prevLookTarget;
+
+            EventBus.Trigger(new EventHook(PlayerSystemWithVisualScripting.CONTROLLER_ON_CHANGED_LOOK_TARGET, controller), _ChangedLookTargetValue);
         }
     }
 }

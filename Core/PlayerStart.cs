@@ -1,17 +1,14 @@
 ﻿using UnityEngine;
-
 namespace StudioScor.PlayerSystem
 {
+    [DefaultExecutionOrder(PlayerSystemExecutionOrder.SUB_ORDER)]
     public class PlayerStart : MonoBehaviour
     {
-        [Header(" [ Player Start ] ")]
-        [SerializeField] private PlayerManager _PlayerManager;
-
         private void Start()
         {
-            _PlayerManager.SpawnPlayer(transform.position, transform.rotation);
+            if(!PlayerManager.Instance.PlayerPawn)
+                PlayerManager.Instance.SpawnPlayerPawn(transform.position, transform.rotation);
         }
     }
-
 }
 

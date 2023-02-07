@@ -6,8 +6,7 @@ using System.Diagnostics;
 
 namespace StudioScor.PlayerSystem
 {
-
-    [DefaultExecutionOrder(PlayerSystemExecutionOrder.MAIN_OREDER)]
+    [DefaultExecutionOrder(PlayerSystemExecutionOrder.MAIN_ORDER)]
     [AddComponentMenu("StudioScor/PlayerSystem/Pawn Component", order: 1)]
     public class PawnComponent : MonoBehaviour
     {
@@ -17,7 +16,6 @@ namespace StudioScor.PlayerSystem
 
         #endregion
         [Header(" [ Pawn System ] ")]
-        [SerializeField] protected PlayerManager _PlayerManager;
 
         [Header(" [ Use Player Controller ] ")]
         [SerializeField] private bool _IsPlayer = false;
@@ -72,17 +70,15 @@ namespace StudioScor.PlayerSystem
         }
         #endregion
 
-        protected void Start()
-        {
-            TryAutoPossessd();
 
-            if (_PlayerManager.PlayerPawn != this)
-                _IsPlayer = false;
+        private void Start()
+        {   
+            TryAutoPossessed();
         }
 
-        private void TryAutoPossessd()
+        private void TryAutoPossessed()
         {
-            Log(nameof(TryAutoPossessd));
+            Log("Try Auto Possessed ");
 
             if (_CurrentController != null)
             {
@@ -91,21 +87,18 @@ namespace StudioScor.PlayerSystem
                 return;
             }
 
-            if (_UseAutoPossesed)
+            if (IsPlayer && !PlayerManager.Instance.PlayerPawn)
             {
-                if (IsPlayer)
-                {
-                    _PlayerManager.TrySetPlayerPawn(this);
+                PlayerManager.Instance.ForceSetPlayerPawn(this);
+            }
+            else
+            {
+                _IsPlayer = false;
+            }
 
-                    if (_PlayerManager.PlayerController == null)
-                    {
-                        _PlayerManager.SpawnPlayerController(transform.position, transform.rotation);
-                    }
-                }
-                else
-                {
-                    SpawnAndPossessAiController();
-                }
+            if(_UseAutoPossesed)
+            {
+                SpawnAndPossessAiController();
             }
         }   
 
@@ -114,7 +107,7 @@ namespace StudioScor.PlayerSystem
             if (CurrentController == controller)
                 return;
 
-            Log(nameof(OnPossess) + "-" + controller.name);
+            Log("On Possess -" + controller.name);
 
             if (_CurrentController)
             {
@@ -126,10 +119,7 @@ namespace StudioScor.PlayerSystem
             if (!CurrentController)
                 return;
 
-            if (CurrentController.IsPlayerController)
-            {
-                _IsPlayer = true;
-            }
+            _IsPlayer = CurrentController.IsPlayerController;
 
             Callback_OnPossessedController();
         }
@@ -139,23 +129,15 @@ namespace StudioScor.PlayerSystem
             if (!_CurrentController)
                 return;
 
-            Log(nameof(UnPossess) + "-" + _CurrentController.name);
+            Log("UnPossess -" + _CurrentController.name);
 
-            var controller = _CurrentController;
+            var prevController = _CurrentController;
 
             _CurrentController = null;
 
-            if (controller.IsPlayerController)
-            {
-                _IsPlayer = false;
+            _IsPlayer = false;
 
-                if (_UseAutoPossesed)
-                {
-                    SpawnAndPossessAiController();
-                }
-            }
-
-            Callback_OnUnPossessedController(controller);
+            Callback_OnUnPossessedController(prevController);
         }
 
         protected virtual void SpawnAndPossessAiController()

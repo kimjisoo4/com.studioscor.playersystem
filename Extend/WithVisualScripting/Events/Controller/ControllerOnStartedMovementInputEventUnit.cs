@@ -9,7 +9,7 @@ namespace StudioScor.PlayerSystem.VisualScripting
     [UnitShortTitle("OnStartedMovementInput")]
     [UnitSubtitle("ControllerComponene Event")]
     [UnitCategory("Events\\StudioScor\\PlayerSystem\\Controller")]
-    public class ControllerOnStartedMovementInputEventUnit : ControllerEventUnit<ControllerMovementInputMessageListener.MovementInput>
+    public class ControllerOnStartedMovementInputEventUnit : ControllerEventUnit<ControllerMovementInputMessageListener.MovementInputValue>
     {
         public override Type MessageListenerType => typeof(ControllerMovementInputMessageListener);
         protected override string HookName => PlayerSystemWithVisualScripting.CONTROLLER_ON_STARTED_MOVEMENT_INPUT;
@@ -32,7 +32,7 @@ namespace StudioScor.PlayerSystem.VisualScripting
             Requirement(ControllerComponent, Strength);
         }
 
-        protected override void AssignArguments(Flow flow, ControllerMovementInputMessageListener.MovementInput movementInput)
+        protected override void AssignArguments(Flow flow, ControllerMovementInputMessageListener.MovementInputValue movementInput)
         {
             base.AssignArguments(flow, movementInput);
 

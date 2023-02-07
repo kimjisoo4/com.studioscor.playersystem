@@ -9,7 +9,7 @@ namespace StudioScor.PlayerSystem.VisualScripting
     [UnitShortTitle("OnChangedLookTarget")]
     [UnitSubtitle("ControllerComponene Event")]
     [UnitCategory("Events\\StudioScor\\PlayerSystem\\Controller")]
-    public class ControllerOnChangedLookTargetEventUnit : ControllerEventUnit<ControllerChangedLookTargetMessageListener.ChangedLookTarget>
+    public class ControllerOnChangedLookTargetEventUnit : ControllerEventUnit<ControllerChangedLookTargetMessageListener.ChangedLookTargetValue>
     {
         public override Type MessageListenerType => typeof(ControllerChangedLookTargetMessageListener);
         protected override string HookName => PlayerSystemWithVisualScripting.CONTROLLER_ON_CHANGED_LOOK_TARGET;
@@ -32,7 +32,7 @@ namespace StudioScor.PlayerSystem.VisualScripting
             Requirement(ControllerComponent, PrevTarget);
         }
 
-        protected override void AssignArguments(Flow flow, ControllerChangedLookTargetMessageListener.ChangedLookTarget changedLookTarget)
+        protected override void AssignArguments(Flow flow, ControllerChangedLookTargetMessageListener.ChangedLookTargetValue changedLookTarget)
         {
             base.AssignArguments(flow, changedLookTarget);
 

@@ -1,14 +1,23 @@
 ﻿#if SCOR_ENABLE_VISUALSCRIPTING
+using Unity.VisualScripting;
 
 namespace StudioScor.PlayerSystem.VisualScripting
 {
     public static class PlayerSystemWithVisualScripting
     {
+        
+        
+        //Manager
+        public const string MANAGER_ON_CHANGED_PLAYER_CONTROLLER = "PlayerManager_OnChangedPlayerController";
+        public const string MANAGER_ON_CHANGED_PLAYER_PAWN = "PlayerManager_OnChangedPlayerPawn";
+
+        //Pawn
         public const string PAWN_ON_CHANGED_MOVEMENT_INPUT_STATE = "OnChangedMovementInputState";
         public const string PAWN_ON_CHANGED_ROTATE_INPUT_STATE = "OnChangedRotateInputState";
         public const string PAWN_ON_POSSESSED_CONTROLLER = "OnPossessedController";
         public const string PAWN_ON_UNPOSSESSED_CONTROLLER = "UnPossessedController";
 
+        //Controller
         public const string CONTROLLER_ON_POSSESSED_PAWN = "OnChangedPossessedPawn";
         public const string CONTROLLER_ON_UNPOSSESSED_PAWN = "OnUnPossessedPawn";
         public const string CONTROLLER_ON_CHANGED_MOVEMENT_INPUT_STATE = "OnChnagedMovementInputState";

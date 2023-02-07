@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace StudioScor.PlayerSystem
 {
-    [DefaultExecutionOrder(PlayerSystemExecutionOrder.MAIN_OREDER)]
+    [DefaultExecutionOrder(PlayerSystemExecutionOrder.MAIN_ORDER)]
     [AddComponentMenu("StudioScor/PlayerSystem/Controller Component", order: 0)]
     public class ControllerComponent : MonoBehaviour
     {
@@ -22,8 +22,6 @@ namespace StudioScor.PlayerSystem
         #endregion
 
         [Header(" [ Controller System ] ")]
-        [Header(" [ Player Manager] ")]
-        [SerializeField] protected PlayerManager _PlayerManager;
 
         [Header(" [ Controlled Pawn ] ")]
         [SerializeField] protected PawnComponent _Pawn;
@@ -137,14 +135,6 @@ namespace StudioScor.PlayerSystem
         }
 
         #endregion
-
-        private void Start()
-        {
-            if(_PlayerManager.PlayerController == null)
-            {
-                _PlayerManager.TrySetPlayerController(this);
-            }
-        }
 
         public void OnPossess(PawnComponent pawn)
         {
