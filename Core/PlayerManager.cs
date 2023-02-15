@@ -1,78 +1,83 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
-using System;
-using System.Diagnostics;
 using StudioScor.Utilities;
 
 namespace StudioScor.PlayerSystem
 {
-    public class PlayerManager : Singleton<PlayerManager>
+    [CreateAssetMenu(menuName ="StudioScor/PlayerSystem/new PlayerManager")]
+    public class PlayerManager : BaseScriptableObject
     {
         #region Event
         public delegate void SetPlayerPawnEventHandler(PlayerManager playerManager, PawnComponent currentPawn, PawnComponent prevPawn = null);
         public delegate void SetPlayerContollerEventHandler(PlayerManager playerManager, ControllerComponent currentController, ControllerComponent prevController = null);
         #endregion
 
-        [Header(" [ Player Manager ] ")]
+        [Header(" [ Player Manager ]")]
         [SerializeField] private ControllerComponent _DefaultPlayerController;
-        [SerializeField] private PawnComponent _DefualtPlayerPawn;
+        [SerializeField] private PawnComponent _DefaultPlayerPawn;
 
-        private ControllerComponent _PlayerController = null;
-        private PawnComponent _PlayerPawn = null;
+        private ControllerComponent _PlayerController;
+        private PawnComponent _PlayerPawn;
+
+        public ControllerComponent PlayerController => _PlayerController;
+        public PawnComponent PlayerPawn => _PlayerPawn;
+
+        public bool HasPlayerPawn => PlayerPawn != null;
+        public bool HasPlayerController => PlayerController != null;
 
         public event SetPlayerPawnEventHandler OnChangedPlayerPawn;
         public event SetPlayerContollerEventHandler OnChangedPlayerController;
 
-        public PawnComponent PlayerPawn => _PlayerPawn;
-        public ControllerComponent PlayerController => _PlayerController;
-
-        private void Awake()
+        public void SpawnPlayerPawn(Vector3 position, Quaternion rotation)
         {
-            SpawnPlayerController();
+            var pawn = Instantiate(_DefaultPlayerPawn, position, rotation);
+
+            pawn.SetStartPlayer(true);
+
+            if (!HasPlayerController)
+            {
+                SpawnPlayerController();
+            }
+        }
+        public void SpawnPlayerController()
+        {
+            Instantiate(_DefaultPlayerController);
         }
 
-        public virtual void SpawnPlayerController()
+        public void ForceSetPlayerPawn(PawnComponent pawnComponent)
         {
-            Log("Spawn Player Controller");
+            Log("Force Set Player Pawn : " + pawnComponent);
+            Log("Has Player Pawn : " + HasPlayerPawn);
+            Log("Current Player Pawn : " + _PlayerPawn);
 
-            var controller = Instantiate(_DefaultPlayerController);
-
-            ForceSetPlayerContoller(controller);
-        }
-        public virtual void SpawnPlayerPawn(Vector3 position, Quaternion rotation)
-        {
-            Log("Spawn Player Pawn ");
-
-            var pawn = Instantiate(_DefualtPlayerPawn, position, rotation);
-
-            ForceSetPlayerPawn(pawn);
-        }
-
-        public void ForceSetPlayerPawn(PawnComponent pawnComponent = null)
-        {
-            if (_PlayerPawn == pawnComponent)
+            if (HasPlayerPawn && _PlayerPawn == pawnComponent)
                 return;
 
             var prevPawn = _PlayerPawn;
             _PlayerPawn = pawnComponent;
 
-            if (_PlayerController)
+            if (HasPlayerController)
             {
+                Log(HasPlayerPawn ? "On Possess" : "Un Possess");
+
                 _PlayerController.OnPossess(_PlayerPawn);
             }
 
             Callback_OnChangedPlayerPawn(prevPawn);
         }
 
-        public void ForceSetPlayerContoller(ControllerComponent controllerComponent = null)
+        public void ForceSetPlayerController(ControllerComponent controller)
         {
-            if (_PlayerController == controllerComponent)
+            Log("Force Set Player Controller : " + controller);
+            Log("Has Player Controller : " + HasPlayerController);
+            Log("Current Player Controller : " + _PlayerController);
+
+            if (HasPlayerController && _PlayerController == controller)
                 return;
 
             var prevController = _PlayerController;
-            _PlayerController = controllerComponent;
+            _PlayerController = controller;
 
-            if (_PlayerController && _PlayerPawn)
+            if (_PlayerController)
             {
                 _PlayerController.OnPossess(_PlayerPawn);
             }
@@ -83,15 +88,15 @@ namespace StudioScor.PlayerSystem
         #region Callback
         protected void Callback_OnChangedPlayerController(ControllerComponent prevController)
         {
-            Log("On Changed PlayerController");
+            Log("On Changed PlayerController - Current : " + PlayerController + " Prev : " + prevController);
 
             OnChangedPlayerController?.Invoke(this, _PlayerController, prevController);
         }
-        protected void Callback_OnChangedPlayerPawn(PawnComponent pawnComponent)
+        protected void Callback_OnChangedPlayerPawn(PawnComponent prevPawn)
         {
-            Log("On Changed PlayerPawn");
+            Log("On Changed PlayerPawn - Current :" + _PlayerPawn + " Prev : " + prevPawn);   
 
-            OnChangedPlayerPawn?.Invoke(this, _PlayerPawn, pawnComponent);
+            OnChangedPlayerPawn?.Invoke(this, _PlayerPawn, prevPawn);
         }
         #endregion
     }

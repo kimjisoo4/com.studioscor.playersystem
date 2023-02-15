@@ -1,11 +1,13 @@
 ﻿using UnityEngine;
+using StudioScor.Utilities;
+
 using System.Diagnostics;
 
 namespace StudioScor.PlayerSystem
 {
     [DefaultExecutionOrder(PlayerSystemExecutionOrder.MAIN_ORDER)]
     [AddComponentMenu("StudioScor/PlayerSystem/Controller Component", order: 0)]
-    public class ControllerComponent : MonoBehaviour
+    public class ControllerComponent : BaseMonoBehaviour
     {
         #region Events
         public delegate void OnChangedPawnHandler(ControllerComponent controller, PawnComponent pawn);
@@ -22,48 +24,40 @@ namespace StudioScor.PlayerSystem
         #endregion
 
         [Header(" [ Controller System ] ")]
-
-        [Header(" [ Controlled Pawn ] ")]
-        [SerializeField] protected PawnComponent _Pawn;
-        public PawnComponent Pawn => _Pawn;
-
-        [Header(" [ Player Controller] ")]
-        [SerializeField] protected bool _IsPlayerController = false;
-        public bool IsPlayerController => _IsPlayerController;
+        [SerializeField] protected PlayerManager _PlayerManager;
+        [SerializeField, SReadOnlyWhenPlaying] protected bool _IsPlayer = false;
 
         [Header(" [ Team ] ")]
         [SerializeField] protected EAffiliation _Affiliation = EAffiliation.Hostile;
-        public EAffiliation Affiliation => _Affiliation;
+        
+        protected PawnComponent _Pawn;
 
-        [Header(" [ Use Movement Input ] ")]
+        [Header(" [ Input State ] ")]
         [SerializeField] protected bool _UseMovementInput = true;
-        public bool UseMovementInput => _UseMovementInput;
-
-        [Header(" [ Use Turn Input ]")]
         [SerializeField] protected bool _UseTurnInput = true;
-        public bool UseTurnInput => _UseTurnInput;
-
-        [Header(" [ Use Look Input ] ")]
         [SerializeField] protected bool _UseLookInput = true;
-        public bool UseLookInput => _UseLookInput;
 
         [Header(" [ Look Target ] ")]
         [SerializeField] protected Transform _LookTarget;
-        public Transform LookTarget => _LookTarget;
-
-        private Vector3 _MoveDirection = Vector3.zero;
-        public Vector3 MoveDirection => _MoveDirection;
 
         private float _MoveStrength = 0f;
-        public float MoveStrength => _MoveStrength;
-
+        private Vector3 _MoveDirection = Vector3.zero;
         private Vector3 _TurnDirection = Vector3.zero;
-        public Vector3 TurnDirection => _TurnDirection;
-
         private Vector3 _LookDirection = Vector3.zero;
-        public Vector3 LookDirection => _LookDirection;
 
+        public PawnComponent Pawn => _Pawn;
+        public bool IsPlayer => _IsPlayer;
         public bool IsPossess => Pawn;
+        public EAffiliation Affiliation => _Affiliation;
+        public bool UseMovementInput => _UseMovementInput;
+        public bool UseTurnInput => _UseTurnInput;
+        public bool UseLookInput => _UseLookInput;
+        public Vector3 MoveDirection => _MoveDirection;
+        public float MoveStrength => _MoveStrength;
+        public Vector3 TurnDirection => _TurnDirection;
+        public Vector3 LookDirection => _LookDirection;
+        public Transform LookTarget => _LookTarget;
+
 
         public event OnChangedPawnHandler OnPossessedPawn;
         public event OnChangedPawnHandler OnUnPossessedPawn;
@@ -83,32 +77,12 @@ namespace StudioScor.PlayerSystem
 
         public event LookTargetHandler OnChangedLookTarget;
 
-
-        #region EDITOR ONLY
-#if UNITY_EDITOR
-        [Header(" [ Use Debug ] ")]
-        [SerializeField] protected bool _UseDebug = false;
-#endif
-
-        [Conditional("UNITY_EDITOR")]
-        protected void Log(object message, bool isError = false)
-        {
-#if UNITY_EDITOR
-            if (isError)
-            {
-                UnityEngine.Debug.LogError(GetType().Name + " [" + name + "] -" + message, this);
-            }
-            else if (_UseDebug)
-            {
-                UnityEngine.Debug.Log(GetType().Name + " [" + name + "] -" + message, this);
-            }
-#endif
-        }
+        #region Editor Only
 
         private void OnDrawGizmosSelected()
         {
 #if UNITY_EDITOR
-            if (!_UseDebug)
+            if (!UseDebug)
                 return;
 
             if (_Pawn == null)
@@ -135,6 +109,22 @@ namespace StudioScor.PlayerSystem
         }
 
         #endregion
+
+        private void Start()
+        {
+            if (IsPlayer)
+                ForceSetPlayerController();
+        }
+
+        public void ForceSetPlayerController()
+        {
+            _PlayerManager.ForceSetPlayerController(this);
+
+            if (_PlayerManager.HasPlayerPawn)
+            {
+                OnPossess(_PlayerManager.PlayerPawn);
+            }
+        }
 
         public void OnPossess(PawnComponent pawn)
         {

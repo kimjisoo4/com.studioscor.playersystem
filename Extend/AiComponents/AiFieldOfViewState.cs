@@ -1,5 +1,4 @@
-﻿#if SCOR_ENABLE_UTILITIES
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using StudioScor.Utilities;
 
@@ -69,7 +68,7 @@ namespace StudioScor.PlayerSystem
 
             _RemainInterval = _Interval;
 
-            var hits = Utility.Physics.DrawConeCast(PawnSystem.transform, _Angle, _Distance, _LayerMask, _IgnoreTransforms, UseDebug, 0.1f);
+            var hits = SUtility.Physics.DrawConeCast(PawnSystem.transform, _Angle, _Distance, _LayerMask, _IgnoreTransforms, UseDebug, 0.1f);
 
             if (hits is not null)
             {
@@ -79,7 +78,7 @@ namespace StudioScor.PlayerSystem
                 {
                     if (hit.transform.TryGetComponent(out PawnComponent pawnSystem) && pawnSystem.IsPossessed)
                     {
-                        if (ControllerSystem.CheckAffiliation(pawnSystem.CurrentController) == _Affiliation)
+                        if (ControllerSystem.CheckAffiliation(pawnSystem.Controller) == _Affiliation)
                         {
                             affiliationTargets.Add(pawnSystem);
                         }
@@ -94,5 +93,3 @@ namespace StudioScor.PlayerSystem
         }
     }
 }
-
-#endif

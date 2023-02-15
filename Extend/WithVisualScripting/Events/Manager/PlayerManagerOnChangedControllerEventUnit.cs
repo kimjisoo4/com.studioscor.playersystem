@@ -7,7 +7,7 @@ namespace StudioScor.PlayerSystem.VisualScripting
     [UnitShortTitle("OnChangedPlayerController")]
     [UnitSubtitle("PlayerManager Event")]
     [UnitCategory("Events\\StudioScor\\PlayerSystem\\PlayerManager")]
-    public class PlayerManagerOnChangedControllerEventUnit : PlayerManagerEventUnit<PlayerManagerMessageListner.OnChangedPlayerControllerValue>
+    public class PlayerManagerOnChangedControllerEventUnit : PlayerManagerEventUnit<OnChangedPlayerControllerValue>
     {
         protected override string HookName => PlayerSystemWithVisualScripting.MANAGER_ON_CHANGED_PLAYER_CONTROLLER;
 
@@ -26,7 +26,7 @@ namespace StudioScor.PlayerSystem.VisualScripting
             CurrentController = ValueOutput<ControllerComponent>(nameof(CurrentController));
             PrevController = ValueOutput<ControllerComponent>(nameof(PrevController));
         }
-        protected override void AssignArguments(Flow flow, PlayerManagerMessageListner.OnChangedPlayerControllerValue value)
+        protected override void AssignArguments(Flow flow, OnChangedPlayerControllerValue value)
         {
             flow.SetValue(CurrentController, value.CurrentController);
             flow.SetValue(PrevController, value.PrevController);
