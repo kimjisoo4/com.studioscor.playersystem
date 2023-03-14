@@ -5,9 +5,17 @@ using System.Diagnostics;
 
 namespace StudioScor.PlayerSystem
 {
+    public interface IController
+    {
+        public void SetMoveDirection(Vector3 direction, float strength);
+        public void SetLookDirection(Vector3 direction);
+        public void SetTurnDirection(Vector3 direction);
+        public void SetLookTarget(Transform target);
+    }
+
     [DefaultExecutionOrder(PlayerSystemExecutionOrder.MAIN_ORDER)]
     [AddComponentMenu("StudioScor/PlayerSystem/Controller Component", order: 0)]
-    public class ControllerComponent : BaseMonoBehaviour
+    public class ControllerComponent : BaseMonoBehaviour, IController
     {
         #region Events
         public delegate void OnChangedPawnHandler(ControllerComponent controller, PawnComponent pawn);
@@ -207,7 +215,7 @@ namespace StudioScor.PlayerSystem
             Callback_OnChangedMovementInputState();
         }
 
-        public void SetMovementInput(Vector3 direction, float strength)
+        public void SetMoveDirection(Vector3 direction, float strength)
         {
             if (!UseMovementInput)
                 return;
@@ -240,7 +248,7 @@ namespace StudioScor.PlayerSystem
             Callback_OnChangedTurnInputState();
         }
 
-        public void SetTurnInput(Vector3 direction)
+        public void SetTurnDirection(Vector3 direction)
         {
             if (!UseTurnInput)
                 return;
@@ -288,7 +296,7 @@ namespace StudioScor.PlayerSystem
 
             Callback_OnChangedLookInputState();
         }
-        public void SetLookInput(Vector3 direction)
+        public void SetLookDirection(Vector3 direction)
         {
             if (!UseLookInput)
                 return;
@@ -321,14 +329,14 @@ namespace StudioScor.PlayerSystem
 
             direction.Normalize();
 
-            SetLookInput(direction);
+            SetLookDirection(direction);
         }
 
         public void SetLookInputToTarget()
         {
             if (LookTarget == null)
             {
-                SetLookInput(Vector3.zero);
+                SetLookDirection(Vector3.zero);
 
                 return;
             }
@@ -338,7 +346,7 @@ namespace StudioScor.PlayerSystem
 
             Vector3 direction = LookTarget.transform.position - Pawn.transform.position;
 
-            SetLookInput(direction.normalized);
+            SetLookDirection(direction.normalized);
         }
 
         public void SetLookTarget(Transform newLookTarget)
