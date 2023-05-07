@@ -9,9 +9,8 @@ namespace StudioScor.PlayerSystem.VisualScripting
     [UnitShortTitle("OnStartedMovementInput")]
     [UnitSubtitle("ControllerComponene Event")]
     [UnitCategory("Events\\StudioScor\\PlayerSystem\\Controller")]
-    public class ControllerOnStartedMovementInputEventUnit : ControllerEventUnit<ControllerMovementInputMessageListener.MovementInputValue>
+    public class ControllerOnStartedMovementInputEventUnit : ControllerEventUnit<MoveDirectionEvent>
     {
-        public override Type MessageListenerType => typeof(ControllerMovementInputMessageListener);
         protected override string HookName => PlayerSystemWithVisualScripting.CONTROLLER_ON_STARTED_MOVEMENT_INPUT;
 
         [DoNotSerialize]
@@ -28,11 +27,11 @@ namespace StudioScor.PlayerSystem.VisualScripting
             Direction = ValueOutput<Vector3>(nameof(Direction));
             Strength = ValueOutput<float>(nameof(Strength));
 
-            Requirement(ControllerComponent, Direction);
-            Requirement(ControllerComponent, Strength);
+            Requirement(Target, Direction);
+            Requirement(Target, Strength);
         }
 
-        protected override void AssignArguments(Flow flow, ControllerMovementInputMessageListener.MovementInputValue movementInput)
+        protected override void AssignArguments(Flow flow, MoveDirectionEvent movementInput)
         {
             base.AssignArguments(flow, movementInput);
 

@@ -15,7 +15,7 @@ namespace StudioScor.PlayerSystem.VisualScripting
 
             IsIgnore = ValueOutput<bool>(nameof(IsIgnore));
 
-            Requirement(ControllerComponent, IsIgnore);
+            Requirement(Target, IsIgnore);
         }
 
         protected override void AssignArguments(Flow flow, bool isIgnoreInput)

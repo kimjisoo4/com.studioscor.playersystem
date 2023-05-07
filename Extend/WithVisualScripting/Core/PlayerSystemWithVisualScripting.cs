@@ -66,14 +66,14 @@ namespace StudioScor.PlayerSystem.VisualScripting
         public const string CONTROLLER_ON_CHANGED_ROTATE_INPUT_STATE = "OnChangedRotateInputState";
         public const string CONTROLLER_ON_CHANGED_LOOK_INPUT_STATE = "OnChangedLookInputState";
         
-        public const string CONTROLLER_ON_CHANGED_LOOK_TARGET = "OnChangedLookTarget";
 
         public const string CONTROLLER_ON_STARTED_MOVEMENT_INPUT = "OnStatedMovementInput";
         public const string CONTROLLER_ON_FINISHED_MOVEMENT_INPUT = "OnFinishedMovementInput";
         public const string CONTROLLER_ON_STARTED_ROTATE_INPUT = "OnStatedRotateInput";
         public const string CONTROLLER_ON_FINISHED_ROTATE_INPUT = "OnFinishedRotateInput";
-        public const string CONTROLLER_ON_STARTED_LOOK_INPUT = "OnStatedLookInput";
-        public const string CONTROLLER_ON_FINISHED_LOOK_INPUT = "OnFinishedLookInput";
+
+        public const string CONTROLLER_ON_CHANGED_LOOK_POSITION = "OnChangedLookPosition";
+        public const string CONTROLLER_ON_CHANGED_LOOK_TARGET = "OnChangedLookTarget";
 
     }
 }

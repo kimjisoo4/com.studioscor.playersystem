@@ -16,7 +16,7 @@ namespace StudioScor.PlayerSystem.VisualScripting
 
             Direction = ValueOutput<Vector3>(nameof(Direction));
 
-            Requirement(ControllerComponent, Direction);
+            Requirement(Target, Direction);
         }
 
         protected override void AssignArguments(Flow flow, Vector3 movementInput)

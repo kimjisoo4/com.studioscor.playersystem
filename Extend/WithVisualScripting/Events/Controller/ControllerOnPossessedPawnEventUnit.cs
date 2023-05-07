@@ -21,7 +21,7 @@ namespace StudioScor.PlayerSystem.VisualScripting
 
             PawnComponent = ValueOutput<PawnComponent>(nameof(PawnComponent));
 
-            Requirement(ControllerComponent, PawnComponent);
+            Requirement(Target, PawnComponent);
         }
 
         protected override void AssignArguments(Flow flow, PawnComponent pawn)

@@ -5,31 +5,61 @@ using System.Diagnostics;
 
 namespace StudioScor.PlayerSystem
 {
-    public interface IController
+    public delegate void ChangePawnEventHandler(IControllerEvent controller, PawnComponent pawn);
+
+    public delegate void InputStateEventHandler(IControllerEvent controller, bool isUsed);
+
+    public delegate void MoveDirectionEventHandler(IControllerEvent controller, Vector3 direction, float strength);
+    public delegate void TurnDirectionEventHandler(IControllerEvent controller, Vector3 direction);
+
+    public delegate void LookPositionEventHandler(IControllerEvent controller, Vector3 position, Vector3 prevPosition);
+    public delegate void LookTargetEventHandler(IControllerEvent controllerSystem, Transform currentLookTarget, Transform prevLookTarget);
+
+    public interface IControllerSystem
+    {
+        public GameObject gameObject { get; }
+        public Transform transform { get; }
+
+        public PawnComponent Pawn { get; }
+        public bool IsPlayer { get; }
+        public bool IsPossess { get; }
+    }
+
+    public interface IControllerInput
     {
         public void SetMoveDirection(Vector3 direction, float strength);
-        public void SetLookDirection(Vector3 direction);
         public void SetTurnDirection(Vector3 direction);
+        public void SetLookPosition(Vector3 position);
         public void SetLookTarget(Transform target);
+
+        public Vector3 GetLookPosition();
+        public Vector3 LookPosition { get; }
+        public Transform LookTarget { get; }
+    }
+    public interface IControllerEvent
+    {
+        public event ChangePawnEventHandler OnPossessedPawn;
+        public event ChangePawnEventHandler OnUnPossessedPawn;
+
+        public event InputStateEventHandler OnChangedMovementInputState;
+        public event InputStateEventHandler OnChangedRotateInputState;
+        public event InputStateEventHandler OnChangedLookInputState;
+
+        public event MoveDirectionEventHandler OnStartedMovementInput;
+        public event MoveDirectionEventHandler OnFinishedMovementInput;
+
+        public event TurnDirectionEventHandler OnStartedRotatetInput;
+        public event TurnDirectionEventHandler OnFinishedRotateInput;
+
+        public event LookPositionEventHandler OnChangedLookPosition;
+        public event LookTargetEventHandler OnChangedLookTarget;
     }
 
     [DefaultExecutionOrder(PlayerSystemExecutionOrder.MAIN_ORDER)]
     [AddComponentMenu("StudioScor/PlayerSystem/Controller Component", order: 0)]
-    public class ControllerComponent : BaseMonoBehaviour, IController
+    public class ControllerComponent : BaseMonoBehaviour, IControllerSystem, IControllerInput, IControllerEvent
     {
-        #region Events
-        public delegate void OnChangedPawnHandler(ControllerComponent controller, PawnComponent pawn);
-
-        public delegate void InputStateHandler(ControllerComponent controller, bool isUsed);
-
-        public delegate void StartMovementInputHandler(ControllerComponent controller, Vector3 direction, float strength);
-        public delegate void FinishMovementInputHandler(ControllerComponent controller, Vector3 prevDirection, float prevStrength);
-
-        public delegate void StartRotateInputHander(ControllerComponent controller, Vector3 direction);
-        public delegate void FinishRotateInputHander(ControllerComponent controller, Vector3 direction);
-
-        public delegate void LookTargetHandler(ControllerComponent controllerSystem, Transform currentLookTarget, Transform prevLookTarget);
-        #endregion
+        
 
         [Header(" [ Controller System ] ")]
         [SerializeField] protected PlayerManager _PlayerManager;
@@ -51,7 +81,7 @@ namespace StudioScor.PlayerSystem
         private float _MoveStrength = 0f;
         private Vector3 _MoveDirection = Vector3.zero;
         private Vector3 _TurnDirection = Vector3.zero;
-        private Vector3 _LookDirection = Vector3.zero;
+        private Vector3 _LookPosition = Vector3.zero;
 
         public PawnComponent Pawn => _Pawn;
         public bool IsPlayer => _IsPlayer;
@@ -63,27 +93,28 @@ namespace StudioScor.PlayerSystem
         public Vector3 MoveDirection => _MoveDirection;
         public float MoveStrength => _MoveStrength;
         public Vector3 TurnDirection => _TurnDirection;
-        public Vector3 LookDirection => _LookDirection;
+
         public Transform LookTarget => _LookTarget;
+        public Vector3 LookPosition => _LookPosition;
+
+        
 
 
-        public event OnChangedPawnHandler OnPossessedPawn;
-        public event OnChangedPawnHandler OnUnPossessedPawn;
+        public event ChangePawnEventHandler OnPossessedPawn;
+        public event ChangePawnEventHandler OnUnPossessedPawn;
 
-        public event InputStateHandler OnChangedMovementInputState;
-        public event InputStateHandler OnChangedRotateInputState;
-        public event InputStateHandler OnChangedLookInputState;
+        public event InputStateEventHandler OnChangedMovementInputState;
+        public event InputStateEventHandler OnChangedRotateInputState;
+        public event InputStateEventHandler OnChangedLookInputState;
 
-        public event StartMovementInputHandler OnStartedMovementInput;
-        public event FinishMovementInputHandler OnFinishedMovementInput;
+        public event MoveDirectionEventHandler OnStartedMovementInput;
+        public event MoveDirectionEventHandler OnFinishedMovementInput;
 
-        public event StartRotateInputHander OnStartedRotatetInput;
-        public event FinishRotateInputHander OnFinishedRotateInput;
+        public event TurnDirectionEventHandler OnStartedRotatetInput;
+        public event TurnDirectionEventHandler OnFinishedRotateInput;
 
-        public event StartRotateInputHander OnStartedLookInput;
-        public event FinishRotateInputHander OnFinishedLookInput;
-
-        public event LookTargetHandler OnChangedLookTarget;
+        public event LookPositionEventHandler OnChangedLookPosition;
+        public event LookTargetEventHandler OnChangedLookTarget;
 
         #region Editor Only
 
@@ -104,14 +135,13 @@ namespace StudioScor.PlayerSystem
             Gizmos.DrawRay(start, TurnDirection * 3f);
 
             Gizmos.color = Color.yellow;
-            if (LookTarget == null)
+
+            Vector3 position = GetLookPosition();
+
+            if(position != default)
             {
-                Gizmos.DrawRay(start, LookDirection * 3f);
-            }
-            else
-            {
-                Gizmos.DrawRay(start, GetLookDirection() * 3f);
-                Gizmos.DrawWireSphere(LookTarget.position + Vector3.up, 1f);
+                Gizmos.DrawLine(start, position);
+                Gizmos.DrawWireSphere(position, 1f);
             }
 #endif
         }
@@ -269,107 +299,34 @@ namespace StudioScor.PlayerSystem
 
 
         #region Look
-
-        public Vector3 GetLookDirection()
+        public Vector3 GetLookPosition()
         {
-            if (Pawn == null)
-                return Vector3.zero;
+            if (!_UseLookInput)
+                return default;
 
-            if (LookTarget != null)
-            {
-                return (LookTarget.position - Pawn.transform.position).normalized;
-            }
-            else
-            {
-                return LookDirection;
-            }
+            return LookTarget ? LookTarget.position : _LookPosition;
         }
 
         public void SetUseLookInput(bool useLookInput)
         {
-            if (_UseLookInput == useLookInput)
-            {
-                return;
-            }
-
             _UseLookInput = useLookInput;
 
             Callback_OnChangedLookInputState();
         }
-        public void SetLookDirection(Vector3 direction)
+        public void SetLookPosition(Vector3 position)
         {
-            if (!UseLookInput)
-                return;
+            var prevPosition = _LookPosition;
+            _LookPosition = position;
 
-            Vector3 prevDirection = direction;
-
-            _LookDirection = direction;
-
-            if (prevDirection == Vector3.zero && _LookDirection != Vector3.zero)
-            {
-                Callback_OnStartedLookInput();
-            }
-            else if (prevDirection != Vector3.zero && _LookDirection == Vector3.zero)
-            {
-                Callback_OnFinishedLookInput(prevDirection);
-            }
+            Callback_OnChangedLookPosition(prevPosition);
         }
-        public void SetLookInput(Transform target)
-        {
-            if (!UseLookInput)
-                return;
-
-            if (transform == null)
-                return;
-
-            if (Pawn == null)
-                return;
-
-            Vector3 direction = target.transform.position - Pawn.transform.position;
-
-            direction.Normalize();
-
-            SetLookDirection(direction);
-        }
-
-        public void SetLookInputToTarget()
-        {
-            if (LookTarget == null)
-            {
-                SetLookDirection(Vector3.zero);
-
-                return;
-            }
-
-            if (!Pawn)
-                return;
-
-            Vector3 direction = LookTarget.transform.position - Pawn.transform.position;
-
-            SetLookDirection(direction.normalized);
-        }
-
         public void SetLookTarget(Transform newLookTarget)
         {
             if (_LookTarget == newLookTarget)
-            {
                 return;
-            }
 
             var prevTarget = _LookTarget;
-
             _LookTarget = newLookTarget;
-
-
-            if (_LookTarget == null) 
-            {
-                SetLookInput(prevTarget);
-            }
-            else
-            {
-                SetLookInput(_LookTarget);
-            }
-            
 
             Callback_OnChangedLookTarget(prevTarget);
         }
@@ -438,19 +395,12 @@ namespace StudioScor.PlayerSystem
 
             OnChangedLookInputState?.Invoke(this, _UseLookInput);
         }
-        protected void Callback_OnStartedLookInput()
+        protected void Callback_OnChangedLookPosition(Vector3 prevPosition)
         {
-            Log("On Started Look Input - " + TurnDirection);
+            Log("On Changed LookPosition - " + _LookPosition);
 
-            OnStartedLookInput?.Invoke(this, TurnDirection);
+            OnChangedLookPosition?.Invoke(this, _LookPosition, prevPosition);
         }
-        protected void Callback_OnFinishedLookInput(Vector3 prevDirection)
-        {
-            Log("On Finished Look Input - " + prevDirection);
-
-            OnFinishedLookInput?.Invoke(this, prevDirection);
-        }
-
         protected void Callback_OnChangedLookTarget(Transform prevLookTarget = null)
         {
             Log("On Changed Look Target - New Look Target : " + _LookTarget + " Prev Look Target : " + prevLookTarget);

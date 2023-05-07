@@ -9,9 +9,8 @@ namespace StudioScor.PlayerSystem.VisualScripting
     [UnitShortTitle("OnChangedLookTarget")]
     [UnitSubtitle("ControllerComponene Event")]
     [UnitCategory("Events\\StudioScor\\PlayerSystem\\Controller")]
-    public class ControllerOnChangedLookTargetEventUnit : ControllerEventUnit<ControllerChangedLookTargetMessageListener.ChangedLookTargetValue>
+    public class ControllerOnChangedLookTargetEventUnit : ControllerEventUnit<ChangeLookTargetEvent>
     {
-        public override Type MessageListenerType => typeof(ControllerChangedLookTargetMessageListener);
         protected override string HookName => PlayerSystemWithVisualScripting.CONTROLLER_ON_CHANGED_LOOK_TARGET;
 
         [DoNotSerialize]
@@ -28,16 +27,16 @@ namespace StudioScor.PlayerSystem.VisualScripting
             CurrentTarget = ValueOutput<Transform>(nameof(CurrentTarget));
             PrevTarget = ValueOutput<Transform>(nameof(PrevTarget));
 
-            Requirement(ControllerComponent, CurrentTarget);
-            Requirement(ControllerComponent, PrevTarget);
+            Requirement(Target, CurrentTarget);
+            Requirement(Target, PrevTarget);
         }
 
-        protected override void AssignArguments(Flow flow, ControllerChangedLookTargetMessageListener.ChangedLookTargetValue changedLookTarget)
+        protected override void AssignArguments(Flow flow, ChangeLookTargetEvent changedLookTarget)
         {
             base.AssignArguments(flow, changedLookTarget);
 
-            flow.SetValue(CurrentTarget, changedLookTarget.CurrentLookTarget);
-            flow.SetValue(PrevTarget, changedLookTarget.PrevLookTarget);
+            flow.SetValue(CurrentTarget, changedLookTarget.Current);
+            flow.SetValue(PrevTarget, changedLookTarget.Prev);
         }
     }
 }

@@ -6,9 +6,23 @@ using StudioScor.Utilities;
 
 namespace StudioScor.PlayerSystem
 {
+    public interface IPawnSystem
+    {
+        public Vector3 MoveDirection { get; }
+        public float MoveStrength { get; }
+        public Vector3 TurnDirection { get; }
+        public Vector3 LookPosition { get; }
+        public Transform LookTarget { get; }
+        public Vector3 GetLookPosition();
+    }
+    public interface IPawnSystemEvent
+    {
+
+    }
+
     [DefaultExecutionOrder(PlayerSystemExecutionOrder.MAIN_ORDER)]
     [AddComponentMenu("StudioScor/PlayerSystem/Pawn Component", order: 1)]
-    public class PawnComponent : BaseMonoBehaviour
+    public class PawnComponent : BaseMonoBehaviour, IPawnSystem
     {
         #region Events
         public delegate void ControllerStateHandler(PawnComponent pawn, ControllerComponent controller);
@@ -27,7 +41,6 @@ namespace StudioScor.PlayerSystem
         [Header(" [ Input ] ")]
         [SerializeField] private bool _IgnoreMovementInput = false;
         [SerializeField] private bool _IgnoreRotateInput = false;
-
 
         public ControllerComponent DefaultController => _DefaultController;
         public ControllerComponent Controller => _CurrentController;
@@ -157,6 +170,7 @@ namespace StudioScor.PlayerSystem
 
             Callback_OnChangedRotateInputState();
         }
+
         #endregion
 
         #region Getter
@@ -189,6 +203,31 @@ namespace StudioScor.PlayerSystem
 
                 return Controller.TurnDirection;
             }
+        }
+        public Vector3 LookPosition
+        {
+            get
+            {
+                if (!Controller)
+                    return Vector3.forward;
+
+                return Controller.LookPosition;
+            }
+        }
+        public Transform LookTarget
+        {
+            get
+            {
+                if (!Controller)
+                    return null;
+
+                return Controller.LookTarget;
+            }
+        }
+
+        public Vector3 GetLookPosition()
+        {
+            return Controller.GetLookPosition();
         }
         #endregion
 
