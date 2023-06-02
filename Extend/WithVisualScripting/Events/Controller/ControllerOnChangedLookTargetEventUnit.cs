@@ -6,7 +6,7 @@ using UnityEngine;
 namespace StudioScor.PlayerSystem.VisualScripting
 {
     [UnitTitle("On Controller Changed Look Target")]
-    [UnitShortTitle("OnChangedLookTarget")]
+    [UnitShortTitle("OnControllerChangedLookTarget")]
     [UnitSubtitle("ControllerComponene Event")]
     [UnitCategory("Events\\StudioScor\\PlayerSystem\\Controller")]
     public class ControllerOnChangedLookTargetEventUnit : ControllerEventUnit<ChangeLookTargetEvent>

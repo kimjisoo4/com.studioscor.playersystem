@@ -6,8 +6,16 @@ using StudioScor.Utilities;
 
 namespace StudioScor.PlayerSystem
 {
+    public delegate void ControllerStateHandler(PawnComponent pawn, ControllerComponent controller);
+    public delegate void InputStateHandler(PawnComponent pawn, bool isIgnoreInput);
     public interface IPawnSystem
     {
+        public Transform transform { get; }
+        public GameObject gameObject { get; }
+        public bool IsPlayer { get; }
+        public bool IsPossessed { get; }
+
+        public ControllerComponent Controller { get; }
         public Vector3 MoveDirection { get; }
         public float MoveStrength { get; }
         public Vector3 TurnDirection { get; }
@@ -15,20 +23,19 @@ namespace StudioScor.PlayerSystem
         public Transform LookTarget { get; }
         public Vector3 GetLookPosition();
     }
-    public interface IPawnSystemEvent
+    public interface IPawnEvent
     {
+        public event ControllerStateHandler OnPossessedController;
+        public event ControllerStateHandler OnUnPossessedController;
 
+        public event InputStateHandler OnChangedMovementInputState;
+        public event InputStateHandler OnChangedRotateInputState;
     }
 
     [DefaultExecutionOrder(PlayerSystemExecutionOrder.MAIN_ORDER)]
     [AddComponentMenu("StudioScor/PlayerSystem/Pawn Component", order: 1)]
-    public class PawnComponent : BaseMonoBehaviour, IPawnSystem
+    public class PawnComponent : BaseMonoBehaviour, IPawnSystem, IPawnEvent
     {
-        #region Events
-        public delegate void ControllerStateHandler(PawnComponent pawn, ControllerComponent controller);
-        public delegate void InputStateHandler(PawnComponent pawn, bool isIgnoreInput);
-
-        #endregion
         [Header(" [ Pawn System ] ")]
         [SerializeField] protected PlayerManager _PlayerManager;
 
