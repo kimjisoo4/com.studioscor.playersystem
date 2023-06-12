@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace StudioScor.PlayerSystem
 {
-    public delegate void ChangePawnEventHandler(IControllerEvent controller, PawnComponent pawn);
+    public delegate void ChangePawnEventHandler(IControllerEvent controller, IPawnSystem pawn);
 
     public delegate void InputStateEventHandler(IControllerEvent controller, bool isUsed);
 
@@ -166,9 +166,15 @@ namespace StudioScor.PlayerSystem
         public GameObject gameObject { get; }
         public Transform transform { get; }
 
-        public PawnComponent Pawn { get; }
+        public IPawnSystem Pawn { get; }
         public bool IsPlayer { get; }
         public bool IsPossess { get; }
+
+        public EAffiliation Affiliation { get; }
+        public EAffiliation CheckAffiliation(IControllerSystem target);
+
+        public void OnPossess(IPawnSystem pawn);
+        public void UnPossess(IPawnSystem pawn);
     }
 
     public interface IControllerInput
@@ -183,115 +189,33 @@ namespace StudioScor.PlayerSystem
         public Transform LookTarget { get; }
         public Vector3 MoveDirection { get; }
     }
+
     public interface IControllerEvent
     {
         public event ChangePawnEventHandler OnPossessedPawn;
         public event ChangePawnEventHandler OnUnPossessedPawn;
-
-        public event InputStateEventHandler OnChangedMovementInputState;
-        public event InputStateEventHandler OnChangedRotateInputState;
-        public event InputStateEventHandler OnChangedLookInputState;
-
-        public event MoveDirectionEventHandler OnStartedMovementInput;
-        public event MoveDirectionEventHandler OnFinishedMovementInput;
-
-        public event TurnDirectionEventHandler OnStartedRotatetInput;
-        public event TurnDirectionEventHandler OnFinishedRotateInput;
-
-        public event LookPositionEventHandler OnChangedLookPosition;
-        public event LookTargetEventHandler OnChangedLookTarget;
     }
 
     [DefaultExecutionOrder(PlayerSystemExecutionOrder.MAIN_ORDER)]
     [AddComponentMenu("StudioScor/PlayerSystem/Controller Component", order: 0)]
-    public class ControllerComponent : BaseMonoBehaviour, IControllerSystem, IControllerInput, IControllerEvent
+    public class ControllerComponent : BaseMonoBehaviour, IControllerSystem, IControllerEvent
     {
         [Header(" [ Controller System ] ")]
-        [SerializeField] protected PlayerManager _PlayerManager;
-        [SerializeField, SReadOnlyWhenPlaying] protected bool _IsPlayer = false;
+        [SerializeField] protected PlayerManager playerManager;
+        [SerializeField, SReadOnlyWhenPlaying] protected bool isPlayer = false;
 
         [Header(" [ Team ] ")]
-        [SerializeField] protected EAffiliation _Affiliation = EAffiliation.Hostile;
+        [SerializeField] protected EAffiliation affiliation = EAffiliation.Hostile;
         
-        protected PawnComponent _Pawn;
-
-        [Header(" [ Input State ] ")]
-        [SerializeField] protected bool _UseMovementInput = true;
-        [SerializeField] protected bool _UseTurnInput = true;
-        [SerializeField] protected bool _UseLookInput = true;
-
-        [Header(" [ Look Target ] ")]
-        [SerializeField] protected Transform _LookTarget;
-
-        private float _MoveStrength = 0f;
-        private Vector3 _MoveDirection = Vector3.zero;
-        private Vector3 _TurnDirection = Vector3.zero;
-        private Vector3 _LookPosition = Vector3.zero;
-
-        public PawnComponent Pawn => _Pawn;
-        public bool IsPlayer => _IsPlayer;
-        public bool IsPossess => Pawn;
-        public EAffiliation Affiliation => _Affiliation;
-        public bool UseMovementInput => _UseMovementInput;
-        public bool UseTurnInput => _UseTurnInput;
-        public bool UseLookInput => _UseLookInput;
-        public Vector3 MoveDirection => _MoveDirection;
-        public float MoveStrength => _MoveStrength;
-        public Vector3 TurnDirection => _TurnDirection;
-
-        public Transform LookTarget => _LookTarget;
-        public Vector3 LookPosition => _LookPosition;
-
-        
-
+        private IPawnSystem controlPawn;
+        public IPawnSystem Pawn => controlPawn;
+        public bool IsPlayer => isPlayer;
+        public bool IsPossess => Pawn is not null;
+        public EAffiliation Affiliation => affiliation;
 
         public event ChangePawnEventHandler OnPossessedPawn;
         public event ChangePawnEventHandler OnUnPossessedPawn;
 
-        public event InputStateEventHandler OnChangedMovementInputState;
-        public event InputStateEventHandler OnChangedRotateInputState;
-        public event InputStateEventHandler OnChangedLookInputState;
-
-        public event MoveDirectionEventHandler OnStartedMovementInput;
-        public event MoveDirectionEventHandler OnFinishedMovementInput;
-
-        public event TurnDirectionEventHandler OnStartedRotatetInput;
-        public event TurnDirectionEventHandler OnFinishedRotateInput;
-
-        public event LookPositionEventHandler OnChangedLookPosition;
-        public event LookTargetEventHandler OnChangedLookTarget;
-
-        #region Editor Only
-
-        private void OnDrawGizmosSelected()
-        {
-#if UNITY_EDITOR
-            if (!UseDebug)
-                return;
-
-            if (_Pawn == null)
-                return;
-
-            Vector3 start = _Pawn.transform.position + Vector3.up;
-            Gizmos.color = Color.blue;
-            Gizmos.DrawRay(start, MoveDirection * 3f);
-
-            Gizmos.color = Color.red;
-            Gizmos.DrawRay(start, TurnDirection * 3f);
-
-            Gizmos.color = Color.yellow;
-
-            Vector3 position = GetLookPosition();
-
-            if(position != default)
-            {
-                Gizmos.DrawLine(start, position);
-                Gizmos.DrawWireSphere(position, 1f);
-            }
-#endif
-        }
-
-        #endregion
 
         private void Start()
         {
@@ -301,48 +225,48 @@ namespace StudioScor.PlayerSystem
 
         public void ForceSetPlayerController()
         {
-            _PlayerManager.ForceSetPlayerController(this);
+            playerManager.ForceSetPlayerController(this);
 
-            if (_PlayerManager.HasPlayerPawn)
+            if (playerManager.HasPlayerPawn)
             {
-                OnPossess(_PlayerManager.PlayerPawn);
+                OnPossess(playerManager.PlayerPawn);
             }
         }
 
-        public void OnPossess(PawnComponent pawn)
+        public void OnPossess(IPawnSystem possessPawn)
         {
-            if (_Pawn == pawn)
+            if (controlPawn == possessPawn)
                 return;
 
-            UnPossess(_Pawn);
+            UnPossess(controlPawn);
 
-            _Pawn = pawn;
+            controlPawn = possessPawn;
 
-            if (!_Pawn)
+            if (controlPawn is null)
                 return;
 
-            _Pawn.OnPossess(this);
+            controlPawn.OnPossess(this);
 
             Callback_OnPossessedPawn();
         }
-        public void UnPossess(PawnComponent pawn)
+        public void UnPossess(IPawnSystem unPossessPawn)
         {
-            if (!Pawn)
+            if (!IsPossess)
                 return;
 
-            if (_Pawn != pawn)
+            if (controlPawn != unPossessPawn)
                 return;
 
-            var prevPawn = _Pawn;
+            var prevPawn = controlPawn;
 
-            _Pawn = null;
+            controlPawn = null;
 
             prevPawn.UnPossess();
 
             Callback_OnUnPossessedPawn(prevPawn);
         }
         
-        public virtual EAffiliation CheckAffiliation(ControllerComponent targetController)
+        public virtual EAffiliation CheckAffiliation(IControllerSystem targetController)
         {
             if (Affiliation == EAffiliation.Neutral || targetController.Affiliation == EAffiliation.Neutral)
                 return EAffiliation.Neutral;
@@ -357,201 +281,21 @@ namespace StudioScor.PlayerSystem
             }
         }
 
-        public virtual bool CheckHostile(ControllerComponent targetController)
-        {
-            switch (Affiliation)
-            {
-                case EAffiliation.Neutral:
-                    return false;
-                case EAffiliation.Friendly:
-                    return targetController.GetHostile();
-                case EAffiliation.Hostile:
-                    return targetController.GetFriendly();
-                default:
-                    return false;
-            }
-        }
-
-        public virtual bool GetHostile() => _Affiliation.Equals(EAffiliation.Hostile);
-        public virtual bool GetNeutral() => _Affiliation.Equals(EAffiliation.Neutral);
-        public virtual bool GetFriendly() =>_Affiliation.Equals(EAffiliation.Friendly);
-
-
-        
-        public void SetUseMovementInput(bool useMovementInput)
-        {
-            if (_UseMovementInput == useMovementInput)
-            {
-                return;
-            }
-
-            _UseMovementInput = useMovementInput;
-
-            Callback_OnChangedMovementInputState();
-        }
-
-        public void SetMoveDirection(Vector3 direction, float strength)
-        {
-            if (!UseMovementInput)
-                return;
-
-            Vector3 prevDirection = MoveDirection;
-            float prevMoveStrength = MoveStrength;
-
-            _MoveDirection = direction;
-            _MoveStrength = Mathf.Clamp01(strength);
-
-            if (prevDirection == Vector3.zero && direction != Vector3.zero)
-            {
-                Callback_OnStartedMovementInput();
-            }
-            else if (prevDirection != Vector3.zero && direction == Vector3.zero)
-            {
-                Callback_OnFinishedMovementInput(prevDirection, prevMoveStrength);
-            }
-        }
-
-        public void SetUseTurnInput(bool useTurnInput)
-        {
-            if (_UseTurnInput == useTurnInput)
-            {
-                return;
-            }
-
-            _UseTurnInput = useTurnInput;
-
-            Callback_OnChangedTurnInputState();
-        }
-
-        public void SetTurnDirection(Vector3 direction)
-        {
-            if (!UseTurnInput)
-                return;
-
-            Vector3 prevDirection = direction;
-
-            _TurnDirection = direction;
-
-            if (prevDirection == Vector3.zero && _TurnDirection != Vector3.zero)
-            {
-                Callback_OnStartedTurnInput();
-            }
-            else if (prevDirection != Vector3.zero && _TurnDirection == Vector3.zero)
-            {
-                Callback_OnFinishedTurnInput(prevDirection);
-            }
-        }
-
-
-        #region Look
-        public Vector3 GetLookPosition()
-        {
-            if (!_UseLookInput)
-                return default;
-
-            return LookTarget ? LookTarget.position : _LookPosition;
-        }
-
-        public void SetUseLookInput(bool useLookInput)
-        {
-            _UseLookInput = useLookInput;
-
-            Callback_OnChangedLookInputState();
-        }
-        public void SetLookPosition(Vector3 position)
-        {
-            var prevPosition = _LookPosition;
-            _LookPosition = position;
-
-            Callback_OnChangedLookPosition(prevPosition);
-        }
-        public void SetLookTarget(Transform newLookTarget)
-        {
-            if (_LookTarget == newLookTarget)
-                return;
-
-            var prevTarget = _LookTarget;
-            _LookTarget = newLookTarget;
-
-            Callback_OnChangedLookTarget(prevTarget);
-        }
-
-        #endregion
-
 
         #region Callback
         protected void Callback_OnPossessedPawn()
         {
-            Log("On Possessed Pawn - " + Pawn.name);
+            Log("On Possessed Pawn - " + Pawn.gameObject.name);
 
             OnPossessedPawn?.Invoke(this, Pawn);
         }
-        protected void Callback_OnUnPossessedPawn(PawnComponent prevPawn)
+        protected void Callback_OnUnPossessedPawn(IPawnSystem prevPawn)
         {
-            Log("On UnPossessed Pawn - " + prevPawn.name);
+            Log("On UnPossessed Pawn - " + prevPawn.gameObject.name);
 
             OnUnPossessedPawn?.Invoke(this, prevPawn);
         }
 
-
-        protected void Callback_OnChangedMovementInputState()
-        {
-            Log("On Used Movement Input");
-
-            OnChangedMovementInputState?.Invoke(this, _UseMovementInput);
-        }
-
-        protected void Callback_OnStartedMovementInput()
-        {
-            Log("On Started Movement Input -" + MoveDirection + " * " + MoveStrength);
-
-            OnStartedMovementInput?.Invoke(this, MoveDirection, MoveStrength);
-        }
-        protected void Callback_OnFinishedMovementInput(Vector3 prevDirection, float prevMoveStrength)
-        {
-            Log("On Finished Movement Input -" + prevDirection + " * " + prevMoveStrength);
-
-            OnFinishedMovementInput?.Invoke(this, prevDirection, prevMoveStrength);
-        }
-
-
-        protected void Callback_OnChangedTurnInputState()
-        {
-            Log("On Used Turn Input");
-
-            OnChangedRotateInputState?.Invoke(this, _UseTurnInput);
-        }
-        protected void Callback_OnStartedTurnInput()
-        {
-            Log("On Started Turn Input - " + TurnDirection);
-
-            OnStartedRotatetInput?.Invoke(this, TurnDirection);
-        }
-        protected void Callback_OnFinishedTurnInput(Vector3 prevDirection)
-        {
-            Log("On Finished Turn Input - " + prevDirection);
-
-            OnFinishedRotateInput?.Invoke(this, prevDirection);
-        }
-
-        protected void Callback_OnChangedLookInputState()
-        {
-            Log("On Used Look Input");
-
-            OnChangedLookInputState?.Invoke(this, _UseLookInput);
-        }
-        protected void Callback_OnChangedLookPosition(Vector3 prevPosition)
-        {
-            Log("On Changed LookPosition - " + _LookPosition);
-
-            OnChangedLookPosition?.Invoke(this, _LookPosition, prevPosition);
-        }
-        protected void Callback_OnChangedLookTarget(Transform prevLookTarget = null)
-        {
-            Log("On Changed Look Target - New Look Target : " + _LookTarget + " Prev Look Target : " + prevLookTarget);
-
-            OnChangedLookTarget?.Invoke(this, _LookTarget, prevLookTarget);
-        }
         #endregion
     }
 
