@@ -6,8 +6,8 @@ using StudioScor.Utilities;
 
 namespace StudioScor.PlayerSystem
 {
-    public delegate void ControllerStateHandler(PawnComponent pawn, ControllerComponent controller);
-    public delegate void InputStateHandler(PawnComponent pawn, bool isIgnoreInput);
+    public delegate void ControllerStateHandler(IPawnSystem pawn, IControllerSystem controller);
+    public delegate void InputStateHandler(IPawnSystem pawn, bool isIgnoreInput);
     public interface IPawnSystem
     {
         public Transform transform { get; }
@@ -46,7 +46,6 @@ namespace StudioScor.PlayerSystem
         [Header(" [  Controller ] ")]
         [SerializeField] private bool isStartPlayer = false;
         [SerializeField] private GameObject defaultController;
-        [SerializeField][SReadOnlyWhenPlaying] private GameObject currentController;
         [SerializeField] private bool useAutoPossesed = true;
 
         [Header(" [ Input ] ")]
@@ -67,7 +66,7 @@ namespace StudioScor.PlayerSystem
         public bool IgnoreRotateInput => ignoreRotateInput;
 
         public bool IsPlayer => IsPossessed && Controller.IsPlayer;
-        public bool IsPossessed => currentController;
+        public bool IsPossessed => controller is not null;
         
         public event ControllerStateHandler OnPossessedController;
         public event ControllerStateHandler OnUnPossessedController;
@@ -105,14 +104,14 @@ namespace StudioScor.PlayerSystem
         private void TryAutoPossessed()
         {
             Log("Try Auto Possessed ");
-
-            if (currentController != null && currentController.TryGetControllerSystem(out IControllerSystem controllerSystem))
+/*
+            if (currentController != null && currentController.TryGetControllerSystem(out controller))
             {
-                controllerSystem.OnPossess(this);
-                currentController.OnPossess(this);
+                controller.OnPossess(this);
 
                 return;
             }
+*/
 
             if(!isStartPlayer && useAutoPossesed)
             {
@@ -120,21 +119,21 @@ namespace StudioScor.PlayerSystem
             }
         }   
 
-        public void OnPossess(IControllerSystem controller)
+        public void OnPossess(IControllerSystem possessController)
         {
-            if (Controller == controller)
+            if (Controller == possessController)
                 return;
 
-            Log("On Possess -" + controller.gameObject.name);
+            Log("On Possess -" + possessController.gameObject.name);
 
-            if (currentController)
+            if (IsPossessed)
             {
-                currentController.UnPossess(this);
+                controller.UnPossess(this);
             }
 
-            currentController = controller;
+            controller = possessController;
 
-            if (!Controller)
+            if (Controller is null)
                 return;
 
             isStartPlayer = Controller.IsPlayer;
@@ -144,14 +143,14 @@ namespace StudioScor.PlayerSystem
 
         public void UnPossess()
         {
-            if (!currentController)
+            if (!IsPossessed)
                 return;
 
-            Log("UnPossess -" + currentController.name);
+            Log("UnPossess -" + controller.gameObject.name);
 
-            var prevController = currentController;
+            var prevController = controller;
 
-            currentController = null;
+            controller = null;
 
             isStartPlayer = false;
 
@@ -164,9 +163,16 @@ namespace StudioScor.PlayerSystem
 
             if (defaultController != null)
             {
-                var controller = Instantiate(defaultController);
+                var controllerInstance = Instantiate(defaultController);
 
-                controller.OnPossess(this);
+                if (controllerInstance.TryGetControllerSystem(out controller))
+                {
+                    controller.OnPossess(this);
+                }
+                else
+                {
+                    Log($"{controllerInstance} is Not Has IControllerSystem", true);
+                }
             }
         }
 

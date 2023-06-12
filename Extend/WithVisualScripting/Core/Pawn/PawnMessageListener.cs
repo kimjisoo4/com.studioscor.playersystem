@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System;
 using Unity.VisualScripting;
 using UnityEngine;
+using StudioScor.PlayerSystem;
 
 namespace StudioScor.PlayerSystem.VisualScripting
 {
@@ -11,39 +12,39 @@ namespace StudioScor.PlayerSystem.VisualScripting
     {
         private void Awake()
         {
-            var pawn = GetComponent<PawnComponent>();
+            var pawnEvent = gameObject.GetPawnEvent();
 
-            pawn.OnChangedMovementInputState += Pawn_OnChangedIgnoreMovementInput;
-            pawn.OnChangedRotateInputState += Pawn_OnChangedIgnoreRotateInput;
-            pawn.OnUnPossessedController += Pawn_OnUnPossessedController;
-            pawn.OnPossessedController += Pawn_OnPossessedController;
+            pawnEvent.OnChangedMovementInputState += Pawn_OnChangedIgnoreMovementInput;
+            pawnEvent.OnChangedRotateInputState += Pawn_OnChangedIgnoreRotateInput;
+            pawnEvent.OnUnPossessedController += Pawn_OnUnPossessedController;
+            pawnEvent.OnPossessedController += Pawn_OnPossessedController;
         }
         private void OnDestroy()
         {
-            if (TryGetComponent(out PawnComponent pawn))
+            if (gameObject.TryGetPawnEvent(out IPawnEvent pawnEvent))
             {
-                pawn.OnChangedMovementInputState -= Pawn_OnChangedIgnoreMovementInput;
-                pawn.OnChangedRotateInputState -= Pawn_OnChangedIgnoreRotateInput;
-                pawn.OnUnPossessedController -= Pawn_OnUnPossessedController;
-                pawn.OnPossessedController -= Pawn_OnPossessedController;
+                pawnEvent.OnChangedMovementInputState -= Pawn_OnChangedIgnoreMovementInput;
+                pawnEvent.OnChangedRotateInputState -= Pawn_OnChangedIgnoreRotateInput;
+                pawnEvent.OnUnPossessedController -= Pawn_OnUnPossessedController;
+                pawnEvent.OnPossessedController -= Pawn_OnPossessedController;
             }
         }
-        private void Pawn_OnChangedIgnoreRotateInput(PawnComponent pawn, bool ignore)
+        private void Pawn_OnChangedIgnoreRotateInput(IPawnSystem pawn, bool ignore)
         {
             EventBus.Trigger(new EventHook(PlayerSystemWithVisualScripting.PAWN_ON_CHANGED_ROTATE_INPUT_STATE, pawn), ignore);
         }
 
-        private void Pawn_OnChangedIgnoreMovementInput(PawnComponent pawn, bool ignore)
+        private void Pawn_OnChangedIgnoreMovementInput(IPawnSystem pawn, bool ignore)
         {
             EventBus.Trigger(new EventHook(PlayerSystemWithVisualScripting.PAWN_ON_CHANGED_MOVEMENT_INPUT_STATE, pawn), ignore);
         }
 
-        private void Pawn_OnUnPossessedController(PawnComponent pawn, ControllerComponent controller)
+        private void Pawn_OnUnPossessedController(IPawnSystem pawn, IControllerSystem controller)
         {
             EventBus.Trigger(new EventHook(PlayerSystemWithVisualScripting.PAWN_ON_UNPOSSESSED_CONTROLLER, pawn), controller);
         }
 
-        private void Pawn_OnPossessedController(PawnComponent pawn, ControllerComponent controller)
+        private void Pawn_OnPossessedController(IPawnSystem pawn, IControllerSystem controller)
         {
             EventBus.Trigger(new EventHook(PlayerSystemWithVisualScripting.PAWN_ON_POSSESSED_CONTROLLER, pawn), controller);
         }

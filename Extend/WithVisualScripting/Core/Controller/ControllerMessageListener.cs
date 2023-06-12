@@ -41,12 +41,12 @@ namespace StudioScor.PlayerSystem.VisualScripting
             }
         }
 
-        private void Controller_OnUnPossessedPawn(IControllerEvent controller, PawnComponent pawn)
+        private void Controller_OnUnPossessedPawn(IControllerEvent controller, IPawnSystem pawn)
         {
             EventBus.Trigger(new EventHook(PlayerSystemWithVisualScripting.CONTROLLER_ON_UNPOSSESSED_PAWN, controller), pawn);
         }
 
-        private void Controller_OnPossessedPawn(IControllerEvent controller, PawnComponent pawn)
+        private void Controller_OnPossessedPawn(IControllerEvent controller, IPawnSystem pawn)
         {
             EventBus.Trigger(new EventHook(PlayerSystemWithVisualScripting.CONTROLLER_ON_POSSESSED_PAWN, controller), pawn);
         }
