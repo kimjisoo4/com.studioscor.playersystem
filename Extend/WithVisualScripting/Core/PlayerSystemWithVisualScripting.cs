@@ -24,7 +24,7 @@ namespace StudioScor.PlayerSystem.VisualScripting
             playerManager.OnChangedPlayerPawn += PlayerManager_OnChangedPlayerPawn;
         }
 
-        private static void PlayerManager_OnChangedPlayerPawn(PlayerManager playerManager, PawnComponent currentPawn, PawnComponent prevPawn = null)
+        private static void PlayerManager_OnChangedPlayerPawn(PlayerManager playerManager, IPawnSystem currentPawn, IPawnSystem prevPawn = null)
         {
             if (OnChangedPlayerPawnValue is null)
                 OnChangedPlayerPawnValue = new();
@@ -38,7 +38,7 @@ namespace StudioScor.PlayerSystem.VisualScripting
             OnChangedPlayerPawnValue.PrevPawn = null;
         }
 
-        private static void PlayerManager_OnChangedPlayerController(PlayerManager playerManager, ControllerComponent currentController, ControllerComponent prevController = null)
+        private static void PlayerManager_OnChangedPlayerController(PlayerManager playerManager, IControllerSystem currentController, IControllerSystem prevController = null)
         {
             if (OnChangedPlayerControllerValue is null)
                 OnChangedPlayerControllerValue = new();

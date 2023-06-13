@@ -5,15 +5,15 @@ using System.Diagnostics;
 
 namespace StudioScor.PlayerSystem
 {
-    public delegate void ChangePawnEventHandler(IControllerEvent controller, IPawnSystem pawn);
+    public delegate void ChangePawnEventHandler(IControllerSystem controller, IPawnSystem pawn);
 
-    public delegate void InputStateEventHandler(IControllerEvent controller, bool isUsed);
+    public delegate void InputStateEventHandler(IControllerSystem controller, bool isUsed);
 
-    public delegate void MoveDirectionEventHandler(IControllerEvent controller, Vector3 direction, float strength);
-    public delegate void TurnDirectionEventHandler(IControllerEvent controller, Vector3 direction);
+    public delegate void MoveDirectionEventHandler(IControllerSystem controller, Vector3 direction, float strength);
+    public delegate void TurnDirectionEventHandler(IControllerSystem controller, Vector3 direction);
 
-    public delegate void LookPositionEventHandler(IControllerEvent controller, Vector3 position, Vector3 prevPosition);
-    public delegate void LookTargetEventHandler(IControllerEvent controllerSystem, Transform currentLookTarget, Transform prevLookTarget);
+    public delegate void LookPositionEventHandler(IControllerSystem controller, Vector3 position, Vector3 prevPosition);
+    public delegate void LookTargetEventHandler(IControllerSystem controllerSystem, Transform currentLookTarget, Transform prevLookTarget);
 
 
     public static class ControllerSystemUtility
@@ -44,34 +44,6 @@ namespace StudioScor.PlayerSystem
                 return true;
 
             return component.TryGetComponent(out controllerSystem);
-        }
-        #endregion
-        #region Get Controller Event
-        public static IControllerEvent GetControllerEvent(this GameObject gameObject)
-        {
-            return gameObject.GetComponent<IControllerEvent>();
-        }
-        public static IControllerEvent GetControllerEvent(this Component component)
-        {
-            var controller = component as IControllerEvent;
-
-            if (controller is not null)
-                return controller;
-
-            return component.gameObject.GetComponent<IControllerEvent>();
-        }
-        public static bool TryGetControllerEvent(this GameObject gameObject, out IControllerEvent controllerEvent)
-        {
-            return gameObject.TryGetComponent(out controllerEvent);
-        }
-        public static bool TryGetControllerEvent(this Component component, out IControllerEvent controllerEvent)
-        {
-            controllerEvent = component as IControllerEvent;
-
-            if (controllerEvent is not null)
-                return true;
-
-            return component.TryGetComponent(out controllerEvent);
         }
         #endregion
         #region Get Controller Input
@@ -175,6 +147,9 @@ namespace StudioScor.PlayerSystem
 
         public void OnPossess(IPawnSystem pawn);
         public void UnPossess(IPawnSystem pawn);
+
+        public event ChangePawnEventHandler OnPossessedPawn;
+        public event ChangePawnEventHandler OnUnPossessedPawn;
     }
 
     public interface IControllerInput
@@ -190,15 +165,9 @@ namespace StudioScor.PlayerSystem
         public Vector3 MoveDirection { get; }
     }
 
-    public interface IControllerEvent
-    {
-        public event ChangePawnEventHandler OnPossessedPawn;
-        public event ChangePawnEventHandler OnUnPossessedPawn;
-    }
-
     [DefaultExecutionOrder(PlayerSystemExecutionOrder.MAIN_ORDER)]
     [AddComponentMenu("StudioScor/PlayerSystem/Controller Component", order: 0)]
-    public class ControllerComponent : BaseMonoBehaviour, IControllerSystem, IControllerEvent
+    public class ControllerComponent : BaseMonoBehaviour, IControllerSystem
     {
         [Header(" [ Controller System ] ")]
         [SerializeField] protected PlayerManager playerManager;

@@ -4,8 +4,8 @@ namespace StudioScor.PlayerSystem.VisualScripting
 {
     public class OnChangedPlayerControllerValue
     {
-        public ControllerComponent CurrentController;
-        public ControllerComponent PrevController;
+        public IControllerSystem CurrentController;
+        public IControllerSystem PrevController;
     }
 }
 #endif

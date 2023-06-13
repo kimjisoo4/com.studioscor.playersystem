@@ -4,8 +4,8 @@ namespace StudioScor.PlayerSystem.VisualScripting
 {
     public class OnChangedPlayerPawnValue
     {
-        public PawnComponent CurrentPawn;
-        public PawnComponent PrevPawn;
+        public IPawnSystem CurrentPawn;
+        public IPawnSystem PrevPawn;
     }
 }
 #endif

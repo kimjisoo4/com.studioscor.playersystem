@@ -28,14 +28,11 @@ namespace StudioScor.PlayerSystem
             _PlayerManager.OnChangedPlayerPawn -= PlayerManager_OnChangedPlayerPawn;
         }
 
-        private void PlayerManager_OnChangedPlayerPawn(PlayerManager playerManager, PawnComponent currentPawn, PawnComponent prevPawn = null)
+        private void PlayerManager_OnChangedPlayerPawn(PlayerManager playerManager, IPawnSystem currentPawn, IPawnSystem prevPawn = null)
         {
-            OnChangedPrevPlayerPawn?.Invoke(prevPawn ? prevPawn.transform : null);
-            OnChangedCurrentPlayerPawn?.Invoke(currentPawn ? currentPawn.transform : null);
+            Transform prev = prevPawn is not null ? prevPawn.transform : null;
+            Transform current = currentPawn is not null ? currentPawn.transform : null;
 
-            Transform prev = prevPawn ? prevPawn.transform : null;
-            Transform current = currentPawn ? currentPawn.transform : null;
-            
             Callback_OnChangedPlayerPawn(current, prev);
         }
 

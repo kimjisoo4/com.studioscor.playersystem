@@ -24,7 +24,7 @@ namespace StudioScor.PlayerSystem.VisualScripting
     {
         private void Awake()
         {
-            var controller = GetComponent<IControllerEvent>();
+            var controller = GetComponent<IControllerSystem>();
 
             controller.OnPossessedPawn += Controller_OnPossessedPawn;
             controller.OnUnPossessedPawn += Controller_OnUnPossessedPawn;
@@ -34,19 +34,19 @@ namespace StudioScor.PlayerSystem.VisualScripting
 
         private void OnDestroy()
         {
-            if (TryGetComponent(out IControllerEvent controller))
+            if (TryGetComponent(out IControllerSystem controller))
             {
                 controller.OnPossessedPawn -= Controller_OnPossessedPawn;
                 controller.OnUnPossessedPawn -= Controller_OnUnPossessedPawn;
             }
         }
 
-        private void Controller_OnUnPossessedPawn(IControllerEvent controller, IPawnSystem pawn)
+        private void Controller_OnUnPossessedPawn(IControllerSystem controller, IPawnSystem pawn)
         {
             EventBus.Trigger(new EventHook(PlayerSystemWithVisualScripting.CONTROLLER_ON_UNPOSSESSED_PAWN, controller), pawn);
         }
 
-        private void Controller_OnPossessedPawn(IControllerEvent controller, IPawnSystem pawn)
+        private void Controller_OnPossessedPawn(IControllerSystem controller, IPawnSystem pawn)
         {
             EventBus.Trigger(new EventHook(PlayerSystemWithVisualScripting.CONTROLLER_ON_POSSESSED_PAWN, controller), pawn);
         }

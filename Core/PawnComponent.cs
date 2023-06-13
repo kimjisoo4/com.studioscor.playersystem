@@ -15,6 +15,7 @@ namespace StudioScor.PlayerSystem
         public bool IsPlayer { get; }
         public bool IsPossessed { get; }
 
+        public void SetStartPlayer(bool isPlayer);
         public void OnPossess(IControllerSystem controller);
         public void UnPossess();
 
@@ -44,8 +45,9 @@ namespace StudioScor.PlayerSystem
         [SerializeField] protected PlayerManager playerManager;
 
         [Header(" [  Controller ] ")]
-        [SerializeField] private bool isStartPlayer = false;
         [SerializeField] private GameObject defaultController;
+        [SerializeField][SReadOnlyWhenPlaying] private GameObject currentController;
+        [SerializeField] private bool isStartPlayer = false;
         [SerializeField] private bool useAutoPossesed = true;
 
         [Header(" [ Input ] ")]
@@ -59,9 +61,7 @@ namespace StudioScor.PlayerSystem
         
         private Vector3 turnDirection;
 
-        public GameObject DefaultController => defaultController;
         public IControllerSystem Controller => controller;
-
         public bool IgnoreMovementInput => ignoreMovementInput;
         public bool IgnoreRotateInput => ignoreRotateInput;
 
@@ -104,14 +104,13 @@ namespace StudioScor.PlayerSystem
         private void TryAutoPossessed()
         {
             Log("Try Auto Possessed ");
-/*
-            if (currentController != null && currentController.TryGetControllerSystem(out controller))
+
+            if (currentController && currentController.TryGetControllerSystem(out IControllerSystem controllerSystem))
             {
-                controller.OnPossess(this);
+                controllerSystem.OnPossess(this);
 
                 return;
             }
-*/
 
             if(!isStartPlayer && useAutoPossesed)
             {
@@ -137,6 +136,7 @@ namespace StudioScor.PlayerSystem
                 return;
 
             isStartPlayer = Controller.IsPlayer;
+            currentController = Controller.gameObject;
 
             Callback_OnPossessedController();
         }
@@ -151,6 +151,7 @@ namespace StudioScor.PlayerSystem
             var prevController = controller;
 
             controller = null;
+            currentController = null;
 
             isStartPlayer = false;
 
@@ -255,7 +256,7 @@ namespace StudioScor.PlayerSystem
         }
         protected void Callback_OnUnPossessedController(IControllerSystem prevController)
         {
-            Log("On UnPossessed Controller [" + gameObject.name + "] " + prevController);
+            Log("On UnPossessed Controller [" + gameObject.name + "] " + prevController.gameObject);
 
             OnUnPossessedController?.Invoke(this, prevController);
         }
