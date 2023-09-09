@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
 using StudioScor.Utilities;
 
-using System.Diagnostics;
-
 namespace StudioScor.PlayerSystem
 {
     public delegate void ChangePawnEventHandler(IControllerSystem controller, IPawnSystem pawn);
@@ -46,35 +44,6 @@ namespace StudioScor.PlayerSystem
             return component.TryGetComponent(out controllerSystem);
         }
         #endregion
-        #region Get Controller Input
-        public static IControllerInput GetControllerInput(this GameObject gameObject)
-        {
-            return gameObject.GetComponent<IControllerInput>();
-        }
-        public static IControllerInput GetControllerInput(this Component component)
-        {
-            var controller = component as IControllerInput;
-
-            if (controller is not null)
-                return controller;
-
-            return component.gameObject.GetComponent<IControllerInput>();
-        }
-        public static bool TryGetControllerInput(this GameObject gameObject, out IControllerInput controllerInput)
-        {
-            return gameObject.TryGetComponent(out controllerInput);
-        }
-        public static bool TryGetControllerInput(this Component component, out IControllerInput controllerInput)
-        {
-            controllerInput = component as IControllerInput;
-
-            if (controllerInput is not null)
-                return true;
-
-            return component.TryGetComponent(out controllerInput);
-        }
-        #endregion
-
         #region Get Pawn System
         public static IPawnSystem GetPawnSystem(this GameObject gameObject)
         {
@@ -103,34 +72,6 @@ namespace StudioScor.PlayerSystem
             return component.TryGetComponent(out pawnSystem);
         }
         #endregion
-        #region Get Pawn Event
-        public static IPawnEvent GetPawnEvent(this GameObject gameObject)
-        {
-            return gameObject.GetComponent<IPawnEvent>();
-        }
-        public static IPawnEvent GetPawnEvent(this Component component)
-        {
-            var pawnSystem = component as IPawnEvent;
-
-            if (pawnSystem is not null)
-                return pawnSystem;
-
-            return component.GetComponent<IPawnEvent>();
-        }
-        public static bool TryGetPawnEvent(this GameObject gameObject, out IPawnEvent pawnEvent)
-        {
-            return gameObject.TryGetComponent(out pawnEvent);
-        }
-        public static bool TryGetPawnEvent(this Component component, out IPawnEvent pawnEvent)
-        {
-            pawnEvent = component as IPawnEvent;
-
-            if (pawnEvent is not null)
-                return true;
-
-            return component.TryGetComponent(out pawnEvent);
-        }
-        #endregion
 
     }
     public interface IControllerSystem
@@ -148,12 +89,7 @@ namespace StudioScor.PlayerSystem
         public void OnPossess(IPawnSystem pawn);
         public void UnPossess(IPawnSystem pawn);
 
-        public event ChangePawnEventHandler OnPossessedPawn;
-        public event ChangePawnEventHandler OnUnPossessedPawn;
-    }
 
-    public interface IControllerInput
-    {
         public void SetMoveDirection(Vector3 direction, float strength);
         public void SetTurnDirection(Vector3 direction);
         public void SetLookPosition(Vector3 position);
@@ -162,7 +98,13 @@ namespace StudioScor.PlayerSystem
         public Vector3 GetLookPosition();
         public Vector3 LookPosition { get; }
         public Transform LookTarget { get; }
+        public Vector3 TurnDirection { get; }
         public Vector3 MoveDirection { get; }
+        public float MoveStrength { get; }
+
+        public event ChangePawnEventHandler OnPossessedPawn;
+        public event ChangePawnEventHandler OnUnPossessedPawn;
+        public event LookTargetEventHandler OnChangedLookTarget;
     }
 
     [DefaultExecutionOrder(PlayerSystemExecutionOrder.MAIN_ORDER)]
@@ -171,20 +113,23 @@ namespace StudioScor.PlayerSystem
     {
         [Header(" [ Controller System ] ")]
         [SerializeField] protected PlayerManager playerManager;
-        [SerializeField, SReadOnlyWhenPlaying] protected bool isPlayer = false;
+        [field: SerializeField][field: SReadOnlyWhenPlaying] public bool IsPlayer { get; protected set; } = false;
 
-        [Header(" [ Team ] ")]
-        [SerializeField] protected EAffiliation affiliation = EAffiliation.Hostile;
+        [field : Header(" [ Team ] ")]
+        [field: SerializeField] public EAffiliation Affiliation { get; protected set; } = EAffiliation.Hostile;
         
-        private IPawnSystem controlPawn;
-        public IPawnSystem Pawn => controlPawn;
-        public bool IsPlayer => isPlayer;
         public bool IsPossess => Pawn is not null;
-        public EAffiliation Affiliation => affiliation;
+        public IPawnSystem Pawn { get; protected set; }
+        public Vector3 LookPosition { get; protected set; }
+        public Transform LookTarget { get; protected set; }
+        
+        public Vector3 TurnDirection { get; protected set; }
+        public Vector3 MoveDirection { get; protected set; }
+        public float MoveStrength { get; protected set; }
 
         public event ChangePawnEventHandler OnPossessedPawn;
         public event ChangePawnEventHandler OnUnPossessedPawn;
-
+        public event LookTargetEventHandler OnChangedLookTarget;
 
         private void Start()
         {
@@ -204,17 +149,17 @@ namespace StudioScor.PlayerSystem
 
         public void OnPossess(IPawnSystem possessPawn)
         {
-            if (controlPawn == possessPawn)
+            if (Pawn == possessPawn)
                 return;
 
-            UnPossess(controlPawn);
+            UnPossess(Pawn);
 
-            controlPawn = possessPawn;
+            Pawn = possessPawn;
 
-            if (controlPawn is null)
+            if (Pawn is null)
                 return;
 
-            controlPawn.OnPossess(this);
+            Pawn.OnPossess(this);
 
             Callback_OnPossessedPawn();
         }
@@ -223,12 +168,12 @@ namespace StudioScor.PlayerSystem
             if (!IsPossess)
                 return;
 
-            if (controlPawn != unPossessPawn)
+            if (Pawn != unPossessPawn)
                 return;
 
-            var prevPawn = controlPawn;
+            var prevPawn = Pawn;
 
-            controlPawn = null;
+            Pawn = null;
 
             prevPawn.UnPossess();
 
@@ -250,19 +195,59 @@ namespace StudioScor.PlayerSystem
             }
         }
 
+        public void SetMoveDirection(Vector3 direction, float strength)
+        {
+            MoveDirection = direction;
+            MoveStrength = strength;
+        }
+
+        public void SetTurnDirection(Vector3 direction)
+        {
+            TurnDirection = direction;    
+        }
+
+        public void SetLookPosition(Vector3 position)
+        {
+            LookPosition = position;
+        }
+
+        public void SetLookTarget(Transform target)
+        {
+            if (LookTarget == target)
+                return;
+
+            var prevTarget = LookTarget;
+            LookTarget = target;
+
+            Callback_OnChangedLookTarget(prevTarget);
+        }
+
+        public Vector3 GetLookPosition()
+        {
+            return LookTarget ? LookTarget.position : LookPosition;
+        }
+
+
 
         #region Callback
-        protected void Callback_OnPossessedPawn()
+        protected virtual void Callback_OnPossessedPawn()
         {
             Log("On Possessed Pawn - " + Pawn.gameObject.name);
 
             OnPossessedPawn?.Invoke(this, Pawn);
         }
-        protected void Callback_OnUnPossessedPawn(IPawnSystem prevPawn)
+        protected virtual void Callback_OnUnPossessedPawn(IPawnSystem prevPawn)
         {
             Log("On UnPossessed Pawn - " + prevPawn.gameObject.name);
 
             OnUnPossessedPawn?.Invoke(this, prevPawn);
+        }
+
+        protected virtual void Callback_OnChangedLookTarget(Transform prevTarget)
+        {
+            Log($"On Changed Look Target - Current : {(LookTarget ? LookTarget.name : "Null" )} || Prev : {(prevTarget ? prevTarget.name : "Null")}");
+
+            OnChangedLookTarget?.Invoke(this, LookTarget, prevTarget);
         }
 
         #endregion

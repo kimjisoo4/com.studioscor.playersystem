@@ -19,17 +19,13 @@ namespace StudioScor.PlayerSystem
         public void OnPossess(IControllerSystem controller);
         public void UnPossess();
 
-        public void SetMoveDirection(Vector3 direction, float strength = 0f);
-        public void SetTurnDirection(Vector3 turnDirection);
-
         public IControllerSystem Controller { get; }
 
         public Vector3 MoveDirection { get; }
         public float MoveStrength { get; }
         public Vector3 TurnDirection { get; }
-    }
-    public interface IPawnEvent
-    {
+        public Vector3 LookPosition { get; }
+
         public event ControllerStateHandler OnPossessedController;
         public event ControllerStateHandler OnUnPossessedController;
 
@@ -39,7 +35,7 @@ namespace StudioScor.PlayerSystem
 
     [DefaultExecutionOrder(PlayerSystemExecutionOrder.MAIN_ORDER)]
     [AddComponentMenu("StudioScor/PlayerSystem/Pawn Component", order: 1)]
-    public class PawnComponent : BaseMonoBehaviour, IPawnSystem, IPawnEvent
+    public class PawnComponent : BaseMonoBehaviour, IPawnSystem
     {
         [Header(" [ Pawn System ] ")]
         [SerializeField] protected PlayerManager playerManager;
@@ -55,19 +51,20 @@ namespace StudioScor.PlayerSystem
         [SerializeField] private bool ignoreRotateInput = false;
 
 
-        private IControllerSystem controller;
-        private Vector3 moveDirection;
-        private float moveStrength;
-        
-        private Vector3 turnDirection;
 
-        public IControllerSystem Controller => controller;
+        public IControllerSystem Controller { get; protected set; }
         public bool IgnoreMovementInput => ignoreMovementInput;
-        public bool IgnoreRotateInput => ignoreRotateInput;
+        public bool IgnoreTunrInput => ignoreRotateInput;
 
         public bool IsPlayer => IsPossessed && Controller.IsPlayer;
-        public bool IsPossessed => controller is not null;
-        
+        public bool IsPossessed => Controller is not null;
+
+        public Vector3 MoveDirection => Controller is null || IgnoreMovementInput ? default : Controller.MoveDirection;
+        public float MoveStrength => Controller is null || IgnoreMovementInput ? default : Controller.MoveStrength;
+        public Vector3 TurnDirection => Controller is null || IgnoreTunrInput ? default : Controller.TurnDirection;
+        public Vector3 LookPosition => Controller is null ? default : Controller.GetLookPosition();
+
+
         public event ControllerStateHandler OnPossessedController;
         public event ControllerStateHandler OnUnPossessedController;
 
@@ -127,10 +124,10 @@ namespace StudioScor.PlayerSystem
 
             if (IsPossessed)
             {
-                controller.UnPossess(this);
+                Controller.UnPossess(this);
             }
 
-            controller = possessController;
+            Controller = possessController;
 
             if (Controller is null)
                 return;
@@ -146,11 +143,11 @@ namespace StudioScor.PlayerSystem
             if (!IsPossessed)
                 return;
 
-            Log("UnPossess -" + controller.gameObject.name);
+            Log("UnPossess -" + Controller.gameObject.name);
 
-            var prevController = controller;
+            var prevController = Controller;
 
-            controller = null;
+            Controller = null;
             currentController = null;
 
             isStartPlayer = false;
@@ -166,28 +163,19 @@ namespace StudioScor.PlayerSystem
             {
                 var controllerInstance = Instantiate(defaultController);
 
-                if (controllerInstance.TryGetControllerSystem(out controller))
+                if (controllerInstance.TryGetControllerSystem(out IControllerSystem newController))
                 {
-                    controller.OnPossess(this);
+                    Controller = newController;
+                    Controller.OnPossess(this);
                 }
                 else
                 {
-                    Log($"{controllerInstance} is Not Has IControllerSystem", true);
+                    Log($"{controllerInstance} is Not Has IControllerSystem", true, SUtility.NAME_COLOR_RED);
                 }
             }
         }
 
         #region Setter
-        public void SetMoveDirection(Vector3 newDirection, float newMoveStrength = 0f)
-        {
-            moveDirection = newDirection;
-            moveStrength = newMoveStrength;
-        }
-        public void SetTurnDirection(Vector3 newTurnDirection) 
-        {
-            turnDirection = newTurnDirection;
-        }
-
         public void SetIgnoreMovementInput(bool useMovementInput)
         {
             if (ignoreMovementInput == useMovementInput)
@@ -209,40 +197,6 @@ namespace StudioScor.PlayerSystem
             ignoreRotateInput = useRotateInput;
 
             Callback_OnChangedRotateInputState();
-        }
-
-        #endregion
-
-        #region Getter
-        public Vector3 MoveDirection
-        {
-            get
-            {
-                if (IgnoreMovementInput)
-                    return default;
-
-                return moveDirection;
-            }
-        }
-        public float MoveStrength
-        {
-            get
-            {
-                if (IgnoreMovementInput)
-                    return 0f;
-
-                return moveStrength;
-            }
-        }
-        public Vector3 TurnDirection
-        {
-            get
-            {
-                if (IgnoreRotateInput)
-                    return default;
-
-                return turnDirection;
-            }
         }
 
         #endregion
@@ -270,9 +224,9 @@ namespace StudioScor.PlayerSystem
 
         protected void Callback_OnChangedRotateInputState()
         {
-            Log("On Change Ignore Rotate Input : " + IgnoreRotateInput);
+            Log("On Change Ignore Rotate Input : " + IgnoreTunrInput);
 
-            OnChangedRotateInputState?.Invoke(this, IgnoreRotateInput);
+            OnChangedRotateInputState?.Invoke(this, IgnoreTunrInput);
         }
 
         #endregion

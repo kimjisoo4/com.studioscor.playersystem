@@ -12,21 +12,21 @@ namespace StudioScor.PlayerSystem.VisualScripting
     {
         private void Awake()
         {
-            var pawnEvent = gameObject.GetPawnEvent();
+            var pawnSystem = gameObject.GetPawnSystem();
 
-            pawnEvent.OnChangedMovementInputState += Pawn_OnChangedIgnoreMovementInput;
-            pawnEvent.OnChangedRotateInputState += Pawn_OnChangedIgnoreRotateInput;
-            pawnEvent.OnUnPossessedController += Pawn_OnUnPossessedController;
-            pawnEvent.OnPossessedController += Pawn_OnPossessedController;
+            pawnSystem.OnChangedMovementInputState += Pawn_OnChangedIgnoreMovementInput;
+            pawnSystem.OnChangedRotateInputState += Pawn_OnChangedIgnoreRotateInput;
+            pawnSystem.OnUnPossessedController += Pawn_OnUnPossessedController;
+            pawnSystem.OnPossessedController += Pawn_OnPossessedController;
         }
         private void OnDestroy()
         {
-            if (gameObject.TryGetPawnEvent(out IPawnEvent pawnEvent))
+            if (gameObject.TryGetPawnSystem(out IPawnSystem pawnSystem))
             {
-                pawnEvent.OnChangedMovementInputState -= Pawn_OnChangedIgnoreMovementInput;
-                pawnEvent.OnChangedRotateInputState -= Pawn_OnChangedIgnoreRotateInput;
-                pawnEvent.OnUnPossessedController -= Pawn_OnUnPossessedController;
-                pawnEvent.OnPossessedController -= Pawn_OnPossessedController;
+                pawnSystem.OnChangedMovementInputState -= Pawn_OnChangedIgnoreMovementInput;
+                pawnSystem.OnChangedRotateInputState -= Pawn_OnChangedIgnoreRotateInput;
+                pawnSystem.OnUnPossessedController -= Pawn_OnUnPossessedController;
+                pawnSystem.OnPossessedController -= Pawn_OnPossessedController;
             }
         }
         private void Pawn_OnChangedIgnoreRotateInput(IPawnSystem pawn, bool ignore)
