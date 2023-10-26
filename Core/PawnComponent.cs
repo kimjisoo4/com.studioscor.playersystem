@@ -162,11 +162,11 @@ namespace StudioScor.PlayerSystem
             if (defaultController != null)
             {
                 var controllerInstance = Instantiate(defaultController);
+                Log($"Spawn [{controllerInstance}] ", false, SUtility.NAME_COLOR_GREEN);
 
                 if (controllerInstance.TryGetControllerSystem(out IControllerSystem newController))
                 {
-                    Controller = newController;
-                    Controller.OnPossess(this);
+                    newController.OnPossess(this);
                 }
                 else
                 {

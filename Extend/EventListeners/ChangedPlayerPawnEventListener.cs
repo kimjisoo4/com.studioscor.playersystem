@@ -10,7 +10,9 @@ namespace StudioScor.PlayerSystem
         [SerializeField] private PlayerManager _PlayerManager;
 
         [Space(5f)]
+        [Header("Current Player Pawn")]
         public UnityEvent<Transform> OnChangedCurrentPlayerPawn;
+        [Header("Prev Player Pawn")]
         public UnityEvent<Transform> OnChangedPrevPlayerPawn;
 
 
