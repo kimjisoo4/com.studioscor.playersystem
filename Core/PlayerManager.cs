@@ -39,7 +39,7 @@ namespace StudioScor.PlayerSystem
             var instance = Instantiate(defaultPlayerPawn, position, rotation);
 
             if (!instance.TryGetPawnSystem(out IPawnSystem pawnSystem))
-                Log($"{instance} is Not Has IPawnSystem", true);
+                LogError($"{instance} is Not Has IPawnSystem");
 
             pawnSystem.SetStartPlayer(true);
 

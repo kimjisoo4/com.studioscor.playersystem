@@ -152,6 +152,8 @@ namespace StudioScor.PlayerSystem
 
             isStartPlayer = false;
 
+            prevController.UnPossess(this);
+
             Callback_OnUnPossessedController(prevController);
         }
 
@@ -162,7 +164,7 @@ namespace StudioScor.PlayerSystem
             if (defaultController != null)
             {
                 var controllerInstance = Instantiate(defaultController);
-                Log($"Spawn [{controllerInstance}] ", false, SUtility.NAME_COLOR_GREEN);
+                Log($"Spawn [{controllerInstance}] ", SUtility.NAME_COLOR_GREEN);
 
                 if (controllerInstance.TryGetControllerSystem(out IControllerSystem newController))
                 {
@@ -170,7 +172,7 @@ namespace StudioScor.PlayerSystem
                 }
                 else
                 {
-                    Log($"{controllerInstance} is Not Has IControllerSystem", true, SUtility.NAME_COLOR_RED);
+                    LogError($"{controllerInstance} is Not Has IControllerSystem");
                 }
             }
         }
