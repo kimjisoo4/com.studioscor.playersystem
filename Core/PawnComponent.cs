@@ -26,6 +26,8 @@ namespace StudioScor.PlayerSystem
         public Vector3 TurnDirection { get; }
         public Vector3 LookPosition { get; }
         public Transform LookTarget { get; }
+        public Vector3 LookDirection { get; }
+
 
         public event ControllerStateHandler OnPossessedController;
         public event ControllerStateHandler OnUnPossessedController;
@@ -62,9 +64,10 @@ namespace StudioScor.PlayerSystem
 
         public Vector3 MoveDirection => Controller is null || IgnoreMovementInput ? default : Controller.MoveDirection;
         public float MoveStrength => Controller is null || IgnoreMovementInput ? default : Controller.MoveStrength;
-        public Vector3 TurnDirection => Controller is null || IgnoreTunrInput ? default : Controller.TurnDirection;
+        public Vector3 TurnDirection => Controller is null || IgnoreTunrInput ? default : Controller.GetTurnDirection();
         public Vector3 LookPosition => Controller is null ? default : Controller.GetLookPosition();
         public Transform LookTarget => Controller is null ? null : Controller.LookTarget;
+        public Vector3 LookDirection => Controller is null ? default : Controller.GetLookDirection();
 
         public event ControllerStateHandler OnPossessedController;
         public event ControllerStateHandler OnUnPossessedController;

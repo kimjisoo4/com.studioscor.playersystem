@@ -16,6 +16,26 @@ namespace StudioScor.PlayerSystem
 
     public static class ControllerSystemUtility
     {
+        #region Get Controller
+        public static IControllerSystem GetController(this GameObject gameObject)
+        {
+            var controllerSystem = gameObject.GetControllerSystem();
+
+            if (controllerSystem is null)
+            {
+                var pawnSystem = gameObject.GetPawnSystem();
+
+                controllerSystem = pawnSystem.Controller;
+            }
+
+            return controllerSystem;
+        }
+        public static IControllerSystem GetController(this Component component)
+        {
+            return component.gameObject.GetController();
+        }
+        #endregion
+
         #region Get Controller System
         public static IControllerSystem GetControllerSystem(this GameObject gameObject)
         {
@@ -74,6 +94,13 @@ namespace StudioScor.PlayerSystem
         #endregion
 
     }
+
+    public enum ETurnDirectionState
+    {
+        Direction,
+        MoveDirection,
+        LookDirection,
+    }
     public interface IControllerSystem
     {
         public GameObject gameObject { get; }
@@ -86,6 +113,8 @@ namespace StudioScor.PlayerSystem
         public EAffiliation Affiliation { get; }
         public EAffiliation CheckAffiliation(IControllerSystem target);
 
+        public ETurnDirectionState TurnDirectionState { get; }
+
         public void OnPossess(IPawnSystem pawn);
         public void UnPossess(IPawnSystem pawn);
 
@@ -95,7 +124,12 @@ namespace StudioScor.PlayerSystem
         public void SetLookPosition(Vector3 position);
         public void SetLookTarget(Transform target);
 
+        public void SetTurnDirectionState(ETurnDirectionState newDirectionState);
+
         public Vector3 GetLookPosition();
+        public Vector3 GetTurnDirection();
+        public Vector3 GetLookDirection();
+
         public Vector3 LookPosition { get; }
         public Transform LookTarget { get; }
         public Vector3 TurnDirection { get; }
@@ -114,18 +148,41 @@ namespace StudioScor.PlayerSystem
         [Header(" [ Controller System ] ")]
         [SerializeField] protected PlayerManager playerManager;
         [field: SerializeField][field: SReadOnlyWhenPlaying] public bool IsPlayer { get; protected set; } = false;
+        [field: SerializeField] public ETurnDirectionState TurnDirectionState { get; protected set; }
 
         [field : Header(" [ Team ] ")]
         [field: SerializeField] public EAffiliation Affiliation { get; protected set; } = EAffiliation.Hostile;
         
         public bool IsPossess => Pawn is not null;
-        public IPawnSystem Pawn { get; protected set; }
-        public Vector3 LookPosition { get; protected set; }
-        public Transform LookTarget { get; protected set; }
+        public IPawnSystem Pawn { get; private set; }
+
+        public Vector3 MoveDirection { get; private set; }
+        public float MoveStrength { get; private set; }
+
+
+        public Vector3 TurnDirection { get; private set; }
+
+        public Vector3 LookPosition { get; private set; }
+        public Transform LookTarget { get; private set; }
+        public Vector3 GetLookDirection()
+        {
+            return IsPossess? Pawn.transform.Direction(GetLookPosition()) : default;
+        }
         
-        public Vector3 TurnDirection { get; protected set; }
-        public Vector3 MoveDirection { get; protected set; }
-        public float MoveStrength { get; protected set; }
+        public Vector3 GetTurnDirection()
+        {
+            switch (TurnDirectionState)
+            {
+                case ETurnDirectionState.Direction:
+                    return TurnDirection;
+                case ETurnDirectionState.MoveDirection:
+                    return MoveDirection;
+                case ETurnDirectionState.LookDirection:
+                    return GetLookDirection();
+                default:
+                    return default;
+            }
+        }
 
         public event ChangePawnEventHandler OnPossessedPawn;
         public event ChangePawnEventHandler OnUnPossessedPawn;
@@ -227,6 +284,14 @@ namespace StudioScor.PlayerSystem
             return LookTarget ? LookTarget.position : LookPosition;
         }
 
+        public void SetTurnDirectionState(ETurnDirectionState newDirectionState)
+        {
+            if (TurnDirectionState == newDirectionState)
+                return;
+
+            var prevDirectionState = TurnDirectionState;
+            TurnDirectionState = newDirectionState;
+        }
 
 
         #region Callback
@@ -249,6 +314,7 @@ namespace StudioScor.PlayerSystem
 
             OnChangedLookTarget?.Invoke(this, LookTarget, prevTarget);
         }
+
 
         #endregion
     }
