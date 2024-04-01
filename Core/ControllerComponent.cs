@@ -17,15 +17,30 @@ namespace StudioScor.PlayerSystem
     public static class ControllerSystemUtility
     {
         #region Get Controller
+
+        public static bool TryGetController(this GameObject gameObject, out IControllerSystem controllerSystem)
+        {
+            controllerSystem = gameObject.GetController();
+
+            return controllerSystem is not null;
+        }
+        public static bool TryGetController(this Component component, out IControllerSystem controllerSystem)
+        {
+            controllerSystem = component.gameObject.GetController();
+
+            return controllerSystem is not null;
+        }
+
         public static IControllerSystem GetController(this GameObject gameObject)
         {
             var controllerSystem = gameObject.GetControllerSystem();
 
             if (controllerSystem is null)
             {
-                var pawnSystem = gameObject.GetPawnSystem();
-
-                controllerSystem = pawnSystem.Controller;
+                if(gameObject.TryGetPawnSystem(out IPawnSystem pawnSystem))
+                {
+                    controllerSystem = pawnSystem.Controller;
+                }
             }
 
             return controllerSystem;
@@ -33,6 +48,39 @@ namespace StudioScor.PlayerSystem
         public static IControllerSystem GetController(this Component component)
         {
             return component.gameObject.GetController();
+        }
+
+
+        public static bool TryGetPawn(this GameObject gameObject, out IPawnSystem pawnSystem)
+        {
+            pawnSystem = gameObject.GetPawn();
+
+            return pawnSystem is not null;
+        }
+        public static bool TryGetPawn(this Component component, out IPawnSystem pawnSystem)
+        {
+            pawnSystem = component.gameObject.GetPawn();
+
+            return pawnSystem is not null;
+        }
+
+        public static IPawnSystem GetPawn(this GameObject gameObject)
+        {
+            var pawnSystem = gameObject.GetPawnSystem();
+
+            if(pawnSystem is null)
+            {
+                if(gameObject.TryGetControllerSystem(out IControllerSystem controllerSystem))
+                {
+                    pawnSystem = controllerSystem.Pawn;
+                }
+            }
+
+            return pawnSystem;
+        }
+        public static IPawnSystem GetPawn(this Component component)
+        {
+            return component.gameObject.GetPawn();
         }
         #endregion
 
