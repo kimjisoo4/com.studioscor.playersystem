@@ -12,7 +12,7 @@ namespace StudioScor.PlayerSystem.Variable
         private IPawnSystem _pawnSystem;
         private MoveDirectionVariable _original;
 
-        public override IVariable Clone()
+        public override IVariable<Vector3> Clone()
         {
             var copy = new MoveDirectionVariable();
 
@@ -20,7 +20,7 @@ namespace StudioScor.PlayerSystem.Variable
 
             return copy;
         }
-        public override Vector3 GetDirection()
+        public override Vector3 GetValue()
         {
             Vector3 moveDirection = _pawnSystem.MoveDirection;
 
