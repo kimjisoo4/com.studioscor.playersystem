@@ -1,13 +1,14 @@
 {
-    "name": "StudioScor.PlayerSystem.VisualScripting",
-    "rootNamespace": "StudioScor.PlayerSystem.VisualScripting",
+    "name": "StudioScor.PlayerSystem.Extend",
+    "rootNamespace": "StudioScor.PlayerSystem.Extend",
     "references": [
         "GUID:b416e774ede215f448014d6dd80b0293",
         "GUID:0e56af4e027762c43b7508efc3b00495",
         "GUID:86e142e42ae369045bd4eecea14b3e0a",
         "GUID:21b0c8d1703a94250bfac916590cea4f",
         "GUID:ea715009a4efd4c6cbc85be3ae097dd3",
-        "GUID:315d634a9ac6d460a9515f5a56be6311"
+        "GUID:315d634a9ac6d460a9515f5a56be6311",
+        "GUID:0caab94c8c0a20b4e83e8dc1e4b2a416"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -21,6 +22,11 @@
             "name": "com.unity.visualscripting",
             "expression": "0.0.0",
             "define": "SCOR_ENABLE_VISUALSCRIPTING"
+        },
+        {
+            "name": "com.alexeytaranov.serializereferencedropdown",
+            "expression": "0.0.0",
+            "define": "SCOR_ENABLE_SERIALIZEREFERENCE"
         }
     ],
     "noEngineReferences": false
