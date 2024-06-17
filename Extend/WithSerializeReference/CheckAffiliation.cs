@@ -14,6 +14,9 @@ namespace StudioScor.PlayerSystem.Extend.TaskSystem
         [SerializeField] private EAffiliation _affiliation = EAffiliation.Hostile;
 
         private IControllerSystem _controllerSystem;
+
+        protected new CheckAffiliation _original;
+
         public override void Setup(GameObject owner)
         {
             base.Setup(owner);
@@ -41,7 +44,9 @@ namespace StudioScor.PlayerSystem.Extend.TaskSystem
             if (!target.TryGetController(out IControllerSystem targetController))
                 return false;
 
-            return _controllerSystem.CheckAffiliation(targetController) == _affiliation;
+            var aiiliation = _original is null ? _affiliation : _original._affiliation;
+
+            return _controllerSystem.CheckAffiliation(targetController) == aiiliation;
         }
     }
 }
