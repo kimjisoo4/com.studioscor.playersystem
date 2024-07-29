@@ -12,14 +12,16 @@ namespace StudioScor.PlayerSystem
         #endregion
 
         [Header(" [ Player Manager ]")]
-        [SerializeField] private GameObject defaultPlayerController;
-        [SerializeField] private GameObject defaultPlayerPawn;
+        [SerializeField] private GameObject _defaultPlayerController;
+        [SerializeField] private GameObject _defaultPlayerPawn;
 
-        private IControllerSystem playerController;
-        private IPawnSystem playerPawn;
+        [SerializeField][SReadOnly] private GameObject _currentPlayerController;
+        [SerializeField][SReadOnly] private GameObject _currentPlayerPawn;
+        private IControllerSystem _playerController;
+        private IPawnSystem _playerPawn;
 
-        public IControllerSystem PlayerController => playerController;
-        public IPawnSystem PlayerPawn => playerPawn;
+        public IControllerSystem PlayerController => _playerController;
+        public IPawnSystem PlayerPawn => _playerPawn;
 
         public bool HasPlayerPawn => PlayerPawn != null;
         public bool HasPlayerController => PlayerController != null;
@@ -31,12 +33,16 @@ namespace StudioScor.PlayerSystem
         {
             base.OnReset();
 
-            playerController = null;
-            playerPawn = null;
+            _playerController = null;
+            _playerPawn = null;
+
+            _currentPlayerController = null;
+            _currentPlayerPawn = null;
         }
+
         public void SpawnPlayerPawn(Vector3 position, Quaternion rotation)
         {
-            var instance = Instantiate(defaultPlayerPawn, position, rotation);
+            var instance = Instantiate(_defaultPlayerPawn, position, rotation);
 
             if (!instance.TryGetPawnSystem(out IPawnSystem pawnSystem))
                 LogError($"{instance} is Not Has IPawnSystem");
@@ -48,65 +54,70 @@ namespace StudioScor.PlayerSystem
                 SpawnPlayerController();
             }
         }
+
         public void SpawnPlayerController()
         {
-            Instantiate(defaultPlayerController);
+            Instantiate(_defaultPlayerController);
         }
 
         public void ForceSetPlayerPawn(IPawnSystem pawnSystem)
         {
             Log("Force Set Player Pawn : " + pawnSystem);
             Log("Has Player Pawn : " + HasPlayerPawn);
-            Log("Current Player Pawn : " + playerPawn);
+            Log("Current Player Pawn : " + _playerPawn);
 
-            if (HasPlayerPawn && playerPawn == pawnSystem)
+            if (HasPlayerPawn && _playerPawn == pawnSystem)
                 return;
 
-            var prevPawn = playerPawn;
-            playerPawn = pawnSystem;
+            var prevPawn = _playerPawn;
+            _playerPawn = pawnSystem;
+
+            _currentPlayerPawn = _playerPawn is null ? null : _playerPawn.gameObject;
 
             if (HasPlayerController)
             {
                 Log(HasPlayerPawn ? "On Possess" : "Un Possess");
 
-                playerController.OnPossess(playerPawn);
+                _playerController.OnPossess(_playerPawn);
             }
 
-            Callback_OnChangedPlayerPawn(prevPawn);
+            Invoke_OnChangedPlayerPawn(prevPawn);
         }
 
         public void ForceSetPlayerController(IControllerSystem controller)
         {
             Log("Force Set Player Controller : " + controller);
             Log("Has Player Controller : " + HasPlayerController);
-            Log("Current Player Controller : " + playerController);
+            Log("Current Player Controller : " + _playerController);
 
-            if (HasPlayerController && playerController == controller)
+            if (HasPlayerController && _playerController == controller)
                 return;
 
-            var prevController = playerController;
-            playerController = controller;
+            var prevController = _playerController;
+            _playerController = controller;
 
-            if (playerController is not null)
+            _currentPlayerController = _playerController.gameObject;
+
+            if (_playerController is not null)
             {
-                playerController.OnPossess(playerPawn);
+                _playerController.OnPossess(_playerPawn);
             }
 
-            Callback_OnChangedPlayerController(prevController);
+            Invoke_OnChangedPlayerController(prevController);
         }
 
-        #region Callback
-        protected void Callback_OnChangedPlayerController(IControllerSystem prevController)
+        #region Invoke
+        protected void Invoke_OnChangedPlayerController(IControllerSystem prevController)
         {
-            Log("On Changed PlayerController - Current : " + PlayerController + " Prev : " + prevController);
+            Log($"{nameof(OnChangedPlayerController)} - Current : " + PlayerController + " Prev : " + prevController);
 
-            OnChangedPlayerController?.Invoke(this, playerController, prevController);
+            OnChangedPlayerController?.Invoke(this, _playerController, prevController);
         }
-        protected void Callback_OnChangedPlayerPawn(IPawnSystem prevPawn)
+        protected void Invoke_OnChangedPlayerPawn(IPawnSystem prevPawn)
         {
-            Log("On Changed PlayerPawn - Current :" + playerPawn + " Prev : " + prevPawn);   
+            Log($"{nameof(OnChangedPlayerPawn)} - Current :" + _playerPawn + " Prev : " + prevPawn);   
 
-            OnChangedPlayerPawn?.Invoke(this, playerPawn, prevPawn);
+            OnChangedPlayerPawn?.Invoke(this, _playerPawn, prevPawn);
         }
         #endregion
     }

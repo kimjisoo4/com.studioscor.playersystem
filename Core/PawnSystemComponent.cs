@@ -6,10 +6,10 @@ using StudioScor.Utilities;
 
 namespace StudioScor.PlayerSystem
 {
-    public delegate void ControllerStateHandler(IPawnSystem pawn, IControllerSystem controller);
-    public delegate void InputStateHandler(IPawnSystem pawn, bool isIgnoreInput);
     public interface IPawnSystem
     {
+        public delegate void ControllerStateHandler(IPawnSystem pawn, IControllerSystem controller);
+        public delegate void InputStateHandler(IPawnSystem pawn, bool isIgnoreInput);
         public Transform transform { get; }
         public GameObject gameObject { get; }
         public bool IsPlayer { get; }
@@ -37,27 +37,25 @@ namespace StudioScor.PlayerSystem
     }
 
     [DefaultExecutionOrder(PlayerSystemExecutionOrder.MAIN_ORDER)]
-    [AddComponentMenu("StudioScor/PlayerSystem/Pawn Component", order: 1)]
-    public class PawnComponent : BaseMonoBehaviour, IPawnSystem
+    [AddComponentMenu("StudioScor/PlayerSystem/Pawn System Component", order: 1)]
+    public class PawnSystemComponent : BaseMonoBehaviour, IPawnSystem
     {
         [Header(" [ Pawn System ] ")]
-        [SerializeField] protected PlayerManager playerManager;
+        [SerializeField] private PlayerManager _playerManager;
 
         [Header(" [  Controller ] ")]
-        [SerializeField] private GameObject defaultController;
-        [SerializeField][SReadOnlyWhenPlaying] private GameObject currentController;
-        [SerializeField] private bool isStartPlayer = false;
-        [SerializeField] private bool useAutoPossesed = true;
+        [SerializeField] private GameObject _defaultController;
+        [SerializeField][SReadOnlyWhenPlaying] private GameObject _currentController;
+        [SerializeField] private bool _isStartPlayer = false;
+        [SerializeField] private bool _useAutoPossesed = true;
 
         [Header(" [ Input ] ")]
-        [SerializeField] private bool ignoreMovementInput = false;
-        [SerializeField] private bool ignoreRotateInput = false;
-
-
+        [SerializeField] private bool _ignoreMovementInput = false;
+        [SerializeField] private bool _ignoreRotateInput = false;
 
         public IControllerSystem Controller { get; protected set; }
-        public bool IgnoreMovementInput => ignoreMovementInput;
-        public bool IgnoreTunrInput => ignoreRotateInput;
+        public bool IgnoreMovementInput => _ignoreMovementInput;
+        public bool IgnoreTunrInput => _ignoreRotateInput;
 
         public bool IsPlayer => IsPossessed && Controller.IsPlayer;
         public bool IsPossessed => Controller is not null;
@@ -69,16 +67,16 @@ namespace StudioScor.PlayerSystem
         public Transform LookTarget => Controller is null ? null : Controller.LookTarget;
         public Vector3 LookDirection => Controller is null ? default : Controller.GetLookDirection();
 
-        public event ControllerStateHandler OnPossessedController;
-        public event ControllerStateHandler OnUnPossessedController;
-
-        public event InputStateHandler OnChangedMovementInputState;
-        public event InputStateHandler OnChangedRotateInputState;
+        public event IPawnSystem.ControllerStateHandler OnPossessedController;
+        public event IPawnSystem.ControllerStateHandler OnUnPossessedController;
+        
+        public event IPawnSystem.InputStateHandler OnChangedMovementInputState;
+        public event IPawnSystem.InputStateHandler OnChangedRotateInputState;
 
 
         private void Start()
         {
-            if (isStartPlayer)
+            if (_isStartPlayer)
                 ForceSetPlayerPawn();
 
             TryAutoPossessed();
@@ -86,34 +84,34 @@ namespace StudioScor.PlayerSystem
 
         public void ForceSetPlayerPawn()
         {
-            playerManager.ForceSetPlayerPawn(this);
+            _playerManager.ForceSetPlayerPawn(this);
 
-            if (playerManager.HasPlayerController)
+            if (_playerManager.HasPlayerController)
             {
-                playerManager.PlayerController.OnPossess(this);
+                _playerManager.PlayerController.OnPossess(this);
             }
         }
         public void SetStartPlayer(bool isPlayer)
         { 
-            isStartPlayer = isPlayer;
+            _isStartPlayer = isPlayer;
         }
         public void SetAutoPossess(bool useAutoPossess)
         {
-            useAutoPossesed = useAutoPossess;
+            _useAutoPossesed = useAutoPossess;
         }
 
         private void TryAutoPossessed()
         {
             Log("Try Auto Possessed ");
 
-            if (currentController && currentController.TryGetControllerSystem(out IControllerSystem controllerSystem))
+            if (_currentController && _currentController.TryGetControllerSystem(out IControllerSystem controllerSystem))
             {
                 controllerSystem.OnPossess(this);
 
                 return;
             }
 
-            if(!isStartPlayer && useAutoPossesed)
+            if(!_isStartPlayer && _useAutoPossesed)
             {
                 SpawnAndPossessAiController();
             }
@@ -136,10 +134,10 @@ namespace StudioScor.PlayerSystem
             if (Controller is null)
                 return;
 
-            isStartPlayer = Controller.IsPlayer;
-            currentController = Controller.gameObject;
+            _isStartPlayer = Controller.IsPlayer;
+            _currentController = Controller.gameObject;
 
-            Callback_OnPossessedController();
+            Invoke_OnPossessedController();
         }
 
         public void UnPossess()
@@ -152,22 +150,23 @@ namespace StudioScor.PlayerSystem
             var prevController = Controller;
 
             Controller = null;
-            currentController = null;
+            _currentController = null;
 
-            isStartPlayer = false;
+            _isStartPlayer = false;
 
             prevController.UnPossess(this);
 
-            Callback_OnUnPossessedController(prevController);
+            Invoke_OnUnPossessedController(prevController);
         }
 
         protected virtual void SpawnAndPossessAiController()
         {
             Log("Spawn And Possess Ai Controller.");
 
-            if (defaultController != null)
+            if (_defaultController != null)
             {
-                var controllerInstance = Instantiate(defaultController);
+                var controllerInstance = Instantiate(_defaultController);
+
                 Log($"Spawn [{controllerInstance}] ", SUtility.NAME_COLOR_GREEN);
 
                 if (controllerInstance.TryGetControllerSystem(out IControllerSystem newController))
@@ -184,53 +183,53 @@ namespace StudioScor.PlayerSystem
         #region Setter
         public void SetIgnoreMovementInput(bool useMovementInput)
         {
-            if (ignoreMovementInput == useMovementInput)
+            if (_ignoreMovementInput == useMovementInput)
             {
                 return;
             }
 
-            ignoreMovementInput = useMovementInput;
+            _ignoreMovementInput = useMovementInput;
 
-            Callback_OnChangedMovementInputState();
+            Invoke_OnChangedMovementInputState();
         }
         public void SetIgnoreRotateInput(bool useRotateInput)
         {
-            if (ignoreRotateInput == useRotateInput)
+            if (_ignoreRotateInput == useRotateInput)
             {
                 return;
             }
 
-            ignoreRotateInput = useRotateInput;
+            _ignoreRotateInput = useRotateInput;
 
-            Callback_OnChangedRotateInputState();
+            Invoke_OnChangedRotateInputState();
         }
 
         #endregion
 
-        #region Callback
-        protected void Callback_OnPossessedController()
+        #region Inovke
+        protected void Invoke_OnPossessedController()
         {
-            Log("On Possessed Controller [" + gameObject.name + "] " + Controller);
+            Log($"{nameof(OnPossessedController)} [" + gameObject.name + "] " + Controller);
 
             OnPossessedController?.Invoke(this, Controller);
         }
-        protected void Callback_OnUnPossessedController(IControllerSystem prevController)
+        protected void Invoke_OnUnPossessedController(IControllerSystem prevController)
         {
-            Log("On UnPossessed Controller [" + gameObject.name + "] " + prevController.gameObject);
+            Log($"{nameof(OnUnPossessedController)} [" + gameObject.name + "] " + prevController.gameObject);
 
             OnUnPossessedController?.Invoke(this, prevController);
         }
 
-        protected void Callback_OnChangedMovementInputState()
+        protected void Invoke_OnChangedMovementInputState()
         {
-            Log("On Changed Ignore Movement Input : " + IgnoreMovementInput);
+            Log($"{nameof(OnChangedMovementInputState)} : " + IgnoreMovementInput);
 
             OnChangedMovementInputState?.Invoke(this, IgnoreMovementInput);
         }
 
-        protected void Callback_OnChangedRotateInputState()
+        protected void Invoke_OnChangedRotateInputState()
         {
-            Log("On Change Ignore Rotate Input : " + IgnoreTunrInput);
+            Log($"{nameof(OnChangedRotateInputState)}: " + IgnoreTunrInput);
 
             OnChangedRotateInputState?.Invoke(this, IgnoreTunrInput);
         }

@@ -7,7 +7,7 @@ namespace StudioScor.PlayerSystem.VisualScripting
     [UnitShortTitle("OnUnPossessedController")]
     [UnitSubtitle("PawnComponent Event")]
     [UnitCategory("Events\\StudioScor\\PlayerSystem\\Pawn")]
-    public class PawnOnUnPossessedControllerEventUnit : PawnEventUnit<ControllerComponent>
+    public class PawnOnUnPossessedControllerEventUnit : PawnEventUnit<ControllerSystemComponent>
     {
         protected override string HookName => PlayerSystemWithVisualScripting.PAWN_ON_UNPOSSESSED_CONTROLLER;
 
@@ -19,10 +19,10 @@ namespace StudioScor.PlayerSystem.VisualScripting
         {
             base.Definition();
 
-            Controller = ValueOutput<ControllerComponent>(nameof(Controller));
+            Controller = ValueOutput<ControllerSystemComponent>(nameof(Controller));
         }
 
-        protected override void AssignArguments(Flow flow, ControllerComponent controllerComponent)
+        protected override void AssignArguments(Flow flow, ControllerSystemComponent controllerComponent)
         {
             base.AssignArguments(flow, controllerComponent);
 

@@ -32,14 +32,14 @@ namespace StudioScor.PlayerSystem.VisualScripting
         }
         public new class Data : EventUnit<T>.Data
         {
-            public PawnComponent PawnComponent;
+            public PawnSystemComponent PawnComponent;
         }
 
         protected override void Definition()
         {
             base.Definition();
 
-            PawnComponent = ValueInput<PawnComponent>(nameof(PawnComponent), null).NullMeansSelf();
+            PawnComponent = ValueInput<PawnSystemComponent>(nameof(PawnComponent), null).NullMeansSelf();
         }
 
         private void UpdateTarget(GraphStack stack)
@@ -48,7 +48,7 @@ namespace StudioScor.PlayerSystem.VisualScripting
 
             var wasListening = data.isListening;
 
-            var pawnComponent = Flow.FetchValue<PawnComponent>(PawnComponent, stack.ToReference());
+            var pawnComponent = Flow.FetchValue<PawnSystemComponent>(PawnComponent, stack.ToReference());
 
             if (pawnComponent != data.PawnComponent)
             {

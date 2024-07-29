@@ -23,8 +23,8 @@ namespace StudioScor.PlayerSystem.VisualScripting
         {
             base.Definition();
 
-            CurrentController = ValueOutput<ControllerComponent>(nameof(CurrentController));
-            PrevController = ValueOutput<ControllerComponent>(nameof(PrevController));
+            CurrentController = ValueOutput<ControllerSystemComponent>(nameof(CurrentController));
+            PrevController = ValueOutput<ControllerSystemComponent>(nameof(PrevController));
         }
         protected override void AssignArguments(Flow flow, OnChangedPlayerControllerValue value)
         {

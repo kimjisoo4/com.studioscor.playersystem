@@ -23,8 +23,8 @@ namespace StudioScor.PlayerSystem.VisualScripting
         {
             base.Definition();
 
-            CurrentPawn = ValueOutput<PawnComponent>(nameof(CurrentPawn));
-            PrevPawn = ValueOutput<PawnComponent>(nameof(PrevPawn));
+            CurrentPawn = ValueOutput<PawnSystemComponent>(nameof(CurrentPawn));
+            PrevPawn = ValueOutput<PawnSystemComponent>(nameof(PrevPawn));
         }
         protected override void AssignArguments(Flow flow, OnChangedPlayerPawnValue value)
         {
