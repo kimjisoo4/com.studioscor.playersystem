@@ -22,9 +22,6 @@ namespace StudioScor.PlayerSystem
         public bool IsPlayer { get; }
         public bool IsPossess { get; }
 
-        public EAffiliation Affiliation { get; }
-        public EAffiliation CheckAffiliation(IControllerSystem target);
-
         public ETurnDirectionState TurnDirectionState { get; }
 
         public void OnPossess(IPawnSystem pawn);
@@ -64,16 +61,13 @@ namespace StudioScor.PlayerSystem
         [SerializeField] private ETurnDirectionState _turnDirectionState;
         [SerializeField][SReadOnlyWhenPlaying] private bool _isPlayer = false;
 
-        [Header(" Team ")]
-        [SerializeField] private EAffiliation _affiliation = EAffiliation.Hostile;
-        
         private IPawnSystem _pawn;
         private Vector3 _moveDirection;
         private float _moveStrength;
         private Vector3 _turnDirection;
         private Vector3 _lookPosition;
         private Transform _lookTarget;
-        public EAffiliation Affiliation => _affiliation;
+
         public bool IsPlayer => _isPlayer;
         public ETurnDirectionState TurnDirectionState => _turnDirectionState;
         
@@ -167,21 +161,6 @@ namespace StudioScor.PlayerSystem
             prevPawn.UnPossess();
 
             Invoke_OnUnPossessedPawn(prevPawn);
-        }
-        
-        public virtual EAffiliation CheckAffiliation(IControllerSystem targetController)
-        {
-            if (_affiliation == EAffiliation.Neutral || targetController.Affiliation == EAffiliation.Neutral)
-                return EAffiliation.Neutral;
-
-            if (_affiliation == targetController.Affiliation)
-            {
-                return EAffiliation.Friendly;
-            }
-            else
-            {
-                return EAffiliation.Hostile;
-            }
         }
 
         public void SetMoveDirection(Vector3 direction, float strength)

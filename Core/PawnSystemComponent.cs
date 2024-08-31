@@ -167,7 +167,7 @@ namespace StudioScor.PlayerSystem
             {
                 var controllerInstance = Instantiate(_defaultController);
 
-                Log($"Spawn [{controllerInstance}] ", SUtility.NAME_COLOR_GREEN);
+                Log($"Spawn [{controllerInstance}] ", SUtility.STRING_COLOR_SUCCESS);
 
                 if (controllerInstance.TryGetControllerSystem(out IControllerSystem newController))
                 {

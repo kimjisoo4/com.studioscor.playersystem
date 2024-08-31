@@ -23,8 +23,8 @@ namespace StudioScor.PlayerSystem
         public IControllerSystem PlayerController => _playerController;
         public IPawnSystem PlayerPawn => _playerPawn;
 
-        public bool HasPlayerPawn => PlayerPawn != null;
-        public bool HasPlayerController => PlayerController != null;
+        public bool HasPlayerPawn => (Object)PlayerPawn;
+        public bool HasPlayerController => (Object)PlayerController;
 
         public event SetPlayerPawnEventHandler OnChangedPlayerPawn;
         public event SetPlayerContollerEventHandler OnChangedPlayerController;

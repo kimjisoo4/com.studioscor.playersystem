@@ -11,9 +11,9 @@ namespace StudioScor.PlayerSystem.Extend.TaskSystem
         [SerializeReference, SerializeReferenceDropdown]
 #endif
         private IGameObjectVariable _target;
-        [SerializeField] private EAffiliation _affiliation = EAffiliation.Hostile;
+        [SerializeField] private ERelationship _affiliation = ERelationship.Hostile;
 
-        private IControllerSystem _controllerSystem;
+        private IRelationshipSystem _relationshipSystem;
 
         protected new CheckAffiliation _original;
 
@@ -23,7 +23,7 @@ namespace StudioScor.PlayerSystem.Extend.TaskSystem
 
             _target.Setup(owner);
 
-            _controllerSystem = _target.GetValue().GetController();
+            _relationshipSystem = _target.GetValue().GetRelationshipSystem();
         }
 
         public override ITaskActionDecorator Clone()
@@ -38,15 +38,15 @@ namespace StudioScor.PlayerSystem.Extend.TaskSystem
 
         protected override bool PerformConditionCheck(GameObject target)
         {
-            if (_controllerSystem is null)
+            if (_relationshipSystem is null)
                 return false;
 
-            if (!target.TryGetController(out IControllerSystem targetController))
+            if (!target.TryGetReleationshipSystem(out IRelationshipSystem targetRelationship))
                 return false;
 
             var aiiliation = _original is null ? _affiliation : _original._affiliation;
 
-            return _controllerSystem.CheckAffiliation(targetController) == aiiliation;
+            return _relationshipSystem.CheckRelationship(targetRelationship) == aiiliation;
         }
     }
 }
