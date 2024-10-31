@@ -78,7 +78,7 @@ namespace StudioScor.PlayerSystem
             {
                 Log(HasPlayerPawn ? "On Possess" : "Un Possess");
 
-                _playerController.OnPossess(_playerPawn);
+                _playerController.Possess(_playerPawn);
             }
 
             Invoke_OnChangedPlayerPawn(prevPawn);
@@ -100,7 +100,7 @@ namespace StudioScor.PlayerSystem
 
             if (_playerController is not null)
             {
-                _playerController.OnPossess(_playerPawn);
+                _playerController.Possess(_playerPawn);
             }
 
             Invoke_OnChangedPlayerController(prevController);

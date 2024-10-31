@@ -1,4 +1,6 @@
-﻿using StudioScor.Utilities;
+﻿#if SCOR_ENABLE_SERIALIZEREFERENCE
+
+using StudioScor.Utilities;
 using System;
 using UnityEngine;
 
@@ -28,3 +30,5 @@ namespace StudioScor.PlayerSystem.Variable
         }
     }
 }
+
+#endif

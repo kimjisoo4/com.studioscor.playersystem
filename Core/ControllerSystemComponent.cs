@@ -20,11 +20,11 @@ namespace StudioScor.PlayerSystem
 
         public IPawnSystem Pawn { get; }
         public bool IsPlayer { get; }
-        public bool IsPossess { get; }
+        public bool IsPossessed { get; }
 
         public ETurnDirectionState TurnDirectionState { get; }
 
-        public void OnPossess(IPawnSystem pawn);
+        public void Possess(IPawnSystem pawn);
         public void UnPossess(IPawnSystem pawn);
 
 
@@ -71,7 +71,7 @@ namespace StudioScor.PlayerSystem
         public bool IsPlayer => _isPlayer;
         public ETurnDirectionState TurnDirectionState => _turnDirectionState;
         
-        public bool IsPossess => Pawn is not null;
+        public bool IsPossessed => Pawn is not null;
         public IPawnSystem Pawn => _pawn;
         public Vector3 MoveDirection => _moveDirection;
         public float MoveStrength => _moveStrength;
@@ -87,7 +87,7 @@ namespace StudioScor.PlayerSystem
 
         public Vector3 GetLookDirection()
         {
-            return IsPossess? _pawn.transform.Direction(GetLookPosition()) : default;
+            return IsPossessed? _pawn.transform.Direction(GetLookPosition()) : default;
         }
         
         public Vector3 GetTurnDirection()
@@ -110,7 +110,7 @@ namespace StudioScor.PlayerSystem
         }
 
 
-        private void Start()
+        protected virtual void Start()
         {
             if (_isPlayer)
                 ForceSetPlayerController();
@@ -122,11 +122,11 @@ namespace StudioScor.PlayerSystem
 
             if (_playerManager.HasPlayerPawn)
             {
-                OnPossess(_playerManager.PlayerPawn);
+                Possess(_playerManager.PlayerPawn);
             }
         }
 
-        public void OnPossess(IPawnSystem possessPawn)
+        public void Possess(IPawnSystem possessPawn)
         {
             if (_pawn == possessPawn)
                 return;
@@ -143,13 +143,14 @@ namespace StudioScor.PlayerSystem
             if (_pawn is null)
                 return;
 
+            OnPossess(_pawn);
             _pawn.OnPossess(this);
 
             Invoke_OnPossessedPawn();
         }
         public void UnPossess(IPawnSystem unPossessPawn)
         {
-            if (!IsPossess)
+            if (!IsPossessed)
                 return;
 
             if (_pawn != unPossessPawn)
@@ -158,11 +159,20 @@ namespace StudioScor.PlayerSystem
             var prevPawn = _pawn;
             _pawn = null;
 
+            OnUnPossess(prevPawn);
             prevPawn.UnPossess();
 
             Invoke_OnUnPossessedPawn(prevPawn);
         }
 
+        protected virtual void OnPossess(IPawnSystem possessedPawn)
+        {
+
+        }
+        protected virtual void OnUnPossess(IPawnSystem unPossessedPawn)
+        {
+
+        }
         public void SetMoveDirection(Vector3 direction, float strength)
         {
             _moveDirection = direction;
@@ -203,27 +213,27 @@ namespace StudioScor.PlayerSystem
 
 
         #region Invoke
-        protected virtual void Invoke_OnPossessedPawn()
+        private void Invoke_OnPossessedPawn()
         {
             Log($"{nameof(OnPossessedPawn)} - {Pawn.gameObject.name}");
 
             OnPossessedPawn?.Invoke(this, Pawn);
         }
-        protected virtual void Invoke_OnUnPossessedPawn(IPawnSystem prevPawn)
+        private void Invoke_OnUnPossessedPawn(IPawnSystem prevPawn)
         {
             Log($"{nameof(OnUnPossessedPawn)} - {prevPawn.gameObject.name}");
 
             OnUnPossessedPawn?.Invoke(this, prevPawn);
         }
 
-        protected virtual void Inovke_OnChangedLookTarget(Transform prevTarget)
+        private void Inovke_OnChangedLookTarget(Transform prevTarget)
         {
             Log($"{nameof(OnChangedLookTarget)} - Current : {(LookTarget ? LookTarget.name : "Null" )} || Prev : {(prevTarget ? prevTarget.name : "Null")}");
 
             OnChangedLookTarget?.Invoke(this, LookTarget, prevTarget);
         }
 
-        protected virtual void Invoke_OnChangedTurnDirectionState(ETurnDirectionState prevState)
+        private void Invoke_OnChangedTurnDirectionState(ETurnDirectionState prevState)
         {
             Log($"{nameof(OnChangedTurnDirection)} - Current : {TurnDirectionState} || Prev : {prevState}");
 

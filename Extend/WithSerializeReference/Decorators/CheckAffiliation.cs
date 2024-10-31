@@ -1,3 +1,4 @@
+#if SCOR_ENABLE_SERIALIZEREFERENCE
 using StudioScor.Utilities;
 using System;
 using UnityEngine;
@@ -7,9 +8,7 @@ namespace StudioScor.PlayerSystem.Extend.TaskSystem
     [Serializable]
     public class CheckAffiliation : TaskActionDecorator
     {
-#if SCOR_ENABLE_SERIALIZEREFERENCE
         [SerializeReference, SerializeReferenceDropdown]
-#endif
         private IGameObjectVariable _target;
         [SerializeField] private ERelationship _affiliation = ERelationship.Hostile;
 
@@ -50,3 +49,4 @@ namespace StudioScor.PlayerSystem.Extend.TaskSystem
         }
     }
 }
+#endif

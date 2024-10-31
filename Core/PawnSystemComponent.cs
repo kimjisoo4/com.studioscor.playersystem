@@ -88,7 +88,7 @@ namespace StudioScor.PlayerSystem
 
             if (_playerManager.HasPlayerController)
             {
-                _playerManager.PlayerController.OnPossess(this);
+                _playerManager.PlayerController.Possess(this);
             }
         }
         public void SetStartPlayer(bool isPlayer)
@@ -106,7 +106,7 @@ namespace StudioScor.PlayerSystem
 
             if (_currentController && _currentController.TryGetControllerSystem(out IControllerSystem controllerSystem))
             {
-                controllerSystem.OnPossess(this);
+                controllerSystem.Possess(this);
 
                 return;
             }
@@ -171,7 +171,7 @@ namespace StudioScor.PlayerSystem
 
                 if (controllerInstance.TryGetControllerSystem(out IControllerSystem newController))
                 {
-                    newController.OnPossess(this);
+                    newController.Possess(this);
                 }
                 else
                 {
@@ -207,27 +207,27 @@ namespace StudioScor.PlayerSystem
         #endregion
 
         #region Inovke
-        protected void Invoke_OnPossessedController()
+        private void Invoke_OnPossessedController()
         {
             Log($"{nameof(OnPossessedController)} [" + gameObject.name + "] " + Controller);
 
             OnPossessedController?.Invoke(this, Controller);
         }
-        protected void Invoke_OnUnPossessedController(IControllerSystem prevController)
+        private void Invoke_OnUnPossessedController(IControllerSystem prevController)
         {
             Log($"{nameof(OnUnPossessedController)} [" + gameObject.name + "] " + prevController.gameObject);
 
             OnUnPossessedController?.Invoke(this, prevController);
         }
 
-        protected void Invoke_OnChangedMovementInputState()
+        private void Invoke_OnChangedMovementInputState()
         {
             Log($"{nameof(OnChangedMovementInputState)} : " + IgnoreMovementInput);
 
             OnChangedMovementInputState?.Invoke(this, IgnoreMovementInput);
         }
 
-        protected void Invoke_OnChangedRotateInputState()
+        private void Invoke_OnChangedRotateInputState()
         {
             Log($"{nameof(OnChangedRotateInputState)}: " + IgnoreTunrInput);
 
