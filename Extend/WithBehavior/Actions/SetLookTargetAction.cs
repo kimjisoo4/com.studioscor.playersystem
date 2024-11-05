@@ -1,4 +1,5 @@
-﻿using StudioScor.PlayerSystem.Behavior;
+﻿#if SCOR_ENABLE_BEHAVIOR
+using StudioScor.PlayerSystem.Behavior;
 using System;
 using Unity.Behavior;
 using Unity.Properties;
@@ -38,3 +39,4 @@ namespace StudioScor.Utilities.UnityBehavior
     }
 
 }
+#endif

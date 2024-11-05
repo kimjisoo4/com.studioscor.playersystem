@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using StudioScor.Utilities;
+using UnityEngine.SceneManagement;
 
 namespace StudioScor.PlayerSystem
 {
@@ -38,6 +39,41 @@ namespace StudioScor.PlayerSystem
 
             _currentPlayerController = null;
             _currentPlayerPawn = null;
+        }
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+
+            SceneManager.sceneUnloaded += SceneManager_sceneUnloaded;
+        }
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+
+            SceneManager.sceneUnloaded -= SceneManager_sceneUnloaded;
+        }
+
+        private void UpdatePlayerState()
+        {
+            Log($"{nameof(UpdatePlayerState)}");
+
+            if (!HasPlayerPawn)
+            {
+                _playerPawn = null;
+                _currentPlayerPawn = null;
+            }
+
+            if (!HasPlayerController)
+            {
+                _playerController = null;
+                _currentPlayerController = null;
+            }
+        }
+
+        private void SceneManager_sceneUnloaded(Scene arg0)
+        {
+            UpdatePlayerState();
         }
 
         public void SpawnPlayerPawn(Vector3 position, Quaternion rotation)
