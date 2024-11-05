@@ -2,6 +2,7 @@
 using Unity.Behavior;
 using UnityEngine;
 using StudioScor.Utilities;
+using StudioScor.Utilities.UnityBehavior;
 
 namespace StudioScor.PlayerSystem.Behavior
 {

@@ -37,6 +37,5 @@ namespace StudioScor.Utilities.UnityBehavior
             return Status.Success;
         }
     }
-
 }
 #endif

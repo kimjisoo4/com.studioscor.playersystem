@@ -1,10 +1,10 @@
 ﻿#if SCOR_ENABLE_BEHAVIOR
 using Unity.Behavior;
 using UnityEngine;
+using StudioScor.Utilities.UnityBehavior;
 
 namespace StudioScor.PlayerSystem.Behavior
 {
-
     public abstract class PlayerAction : BaseAction
     {
         [SerializeReference] public BlackboardVariable<GameObject> Self;
