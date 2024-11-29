@@ -62,6 +62,8 @@ namespace StudioScor.Utilities.UnityBehavior
 
         protected override void OnEnd()
         {
+            base.OnEnd();
+
             _controllerSystem.SetTurnDirection(Vector3.zero);
         }
 

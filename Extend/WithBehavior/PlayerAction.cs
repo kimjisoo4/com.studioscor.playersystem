@@ -10,9 +10,13 @@ namespace StudioScor.PlayerSystem.Behavior
         [SerializeReference] public BlackboardVariable<GameObject> Self;
 
         protected IControllerSystem _controllerSystem;
+        protected IPawnSystem Pawn => _controllerSystem.Pawn;
 
         protected override Status OnStart()
         {
+            if (base.OnStart() == Status.Failure)
+                return Status.Failure;
+
             var self = Self.Value;
 
             if (!self)

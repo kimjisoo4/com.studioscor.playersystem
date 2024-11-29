@@ -7,19 +7,19 @@ using UnityEngine;
 namespace StudioScor.PlayerSystem.Behavior
 {
     [Serializable, Unity.Properties.GeneratePropertyBag]
-    [NodeDescription(name: "Get Possessed Pawn", story: "Get Possessed Pawn from [Self] and store it in [Pawn]", category: "Action/StudioScor/PlayerSystem", id: "playersystem_getpossessedpawn")]
+    [NodeDescription(name: "Get Possessed Pawn", story: "Get Possessed Pawn from [Self] and store it in [Variable]", category: "Action/StudioScor/PlayerSystem", id: "playersystem_getpossessedpawn")]
     public partial class GetPossessedPawn : PlayerAction
     {
-        [SerializeReference] public BlackboardVariable<GameObject> Pawn;
+        [SerializeReference] public BlackboardVariable<GameObject> Variable;
 
         protected override Status OnStart()
         {
             if (base.OnStart() == Status.Failure)
                 return Status.Failure;
 
-            Pawn.Value = _controllerSystem.Pawn.gameObject;
+            Variable.Value = _controllerSystem.Pawn.gameObject;
 
-            Log($"{nameof(Pawn).ToBold()} is {(Pawn.Value ? $"{Pawn.Value.name}" : "Null").ToBold()}");
+            Log($"{nameof(Variable).ToBold()} is {(Variable.Value ? $"{Variable.Value.name}" : "Null").ToBold()}");
 
             return Status.Success;
         }
